@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Claude Code はじめてのチュートリアル | プログラミング未経験から始める AI 開発入門</title>
+    <meta
+      name="description"
+      content="プログラミング未経験者のための Claude Code 入門教材。ターミナルの開き方から MCP・フックまで、9章・約2.5時間で AI コーディングの基本がすべて分かる。"
+    />
+    <meta property="og:title" content="Claude Code はじめてのチュートリアル" />
+    <meta
+      property="og:description"
+      content="プログラミング未経験から始める AI 開発入門。9章・2.5時間で Claude Code の使い方を体系的に学ぼう。"
+    />
+    <meta property="og:type" content="website" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: [
+                '"Noto Sans JP"',
+                "system-ui",
+                "-apple-system",
+                "Segoe UI",
+                "sans-serif",
+              ],
+              mono: [
+                "ui-monospace",
+                "SFMono-Regular",
+                "Menlo",
+                "Monaco",
+                "Consolas",
+                "monospace",
+              ],
+            },
+            colors: {
+              brand: {
+                50: "#fef7ee",
+                100: "#fdedd6",
+                200: "#fad7ac",
+                300: "#f7ba78",
+                400: "#f39342",
+                500: "#f0761e",
+                600: "#e15c14",
+                700: "#bb4513",
+                800: "#953817",
+                900: "#783016",
+              },
+              ink: {
+                900: "#0f172a",
+                800: "#1e293b",
+                700: "#334155",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+      .gradient-text {
+        background: linear-gradient(135deg, #f0761e 0%, #e15c14 50%, #bb4513 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .gradient-bg {
+        background: radial-gradient(
+            ellipse at top left,
+            rgba(240, 118, 30, 0.12),
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse at bottom right,
+            rgba(225, 92, 20, 0.1),
+            transparent 50%
+          );
+      }
+      .grid-bg {
+        background-image: linear-gradient(
+            rgba(15, 23, 42, 0.04) 1px,
+            transparent 1px
+          ),
+          linear-gradient(
+            90deg,
+            rgba(15, 23, 42, 0.04) 1px,
+            transparent 1px
+          );
+        background-size: 32px 32px;
+      }
+      .code-window {
+        background: #0f172a;
+        border: 1px solid #1e293b;
+        border-radius: 12px;
+        box-shadow:
+          0 25px 50px -12px rgba(0, 0, 0, 0.25),
+          0 0 0 1px rgba(255, 255, 255, 0.05);
+      }
+      .code-line .prompt {
+        color: #34d399;
+      }
+      .code-line .comment {
+        color: #94a3b8;
+      }
+      .code-line .keyword {
+        color: #f0761e;
+      }
+      .code-line .string {
+        color: #fbbf24;
+      }
+      .code-line .text {
+        color: #e2e8f0;
+      }
+      .blink {
+        animation: blink 1s steps(1, end) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+      .chapter-card {
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease,
+          border-color 0.2s ease;
+      }
+      .chapter-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 20px 40px -20px rgba(15, 23, 42, 0.25);
+        border-color: #f0761e;
+      }
+    </style>
+  </head>
+
+  <body class="font-sans text-ink-900 bg-white antialiased">
+    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-slate-100">
+      <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="#top" class="flex items-center gap-2 font-bold text-lg">
+          <span
+            class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-white"
+            >C</span
+          >
+          <span>Claude Code Tutorial</span>
+        </a>
+        <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-ink-700">
+          <a href="#features" class="hover:text-brand-600">特長</a>
+          <a href="#chapters" class="hover:text-brand-600">カリキュラム</a>
+          <a href="#for-whom" class="hover:text-brand-600">対象</a>
+          <a href="#faq" class="hover:text-brand-600">FAQ</a>
+        </nav>
+        <a
+          href="../tutorial/README.md"
+          class="hidden sm:inline-flex items-center gap-2 rounded-lg bg-ink-900 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-800"
+        >
+          学習をはじめる →
+        </a>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="relative overflow-hidden gradient-bg">
+        <div class="absolute inset-0 grid-bg opacity-50"></div>
+        <div class="relative max-w-6xl mx-auto px-6 py-20 lg:py-28 grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <span
+              class="inline-flex items-center gap-2 rounded-full bg-brand-100 text-brand-700 px-3 py-1 text-xs font-bold tracking-wider"
+            >
+              <span class="inline-block h-2 w-2 rounded-full bg-brand-500"></span>
+              プログラミング未経験 OK
+            </span>
+            <h1 class="mt-6 text-4xl lg:text-6xl font-black leading-tight tracking-tight">
+              AI に "お願いするだけ" で<br />
+              コードが動く時代へ。
+            </h1>
+            <p class="mt-6 text-lg lg:text-xl text-ink-700 leading-relaxed">
+              <span class="gradient-text font-bold">Claude Code</span>
+              は、あなたのパソコンの中で実際に作業してくれる AI アシスタント。<br />
+              この教材で、<strong>ターミナルの開き方から MCP まで</strong>
+              全部わかります。
+            </p>
+            <div class="mt-8 flex flex-col sm:flex-row gap-3">
+              <a
+                href="../tutorial/README.md"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-6 py-3.5 text-base font-bold text-white shadow-lg shadow-brand-500/30 hover:bg-brand-600 transition"
+              >
+                教材を読みはじめる
+                <svg
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
+                </svg>
+              </a>
+              <a
+                href="#chapters"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-ink-900 px-6 py-3.5 text-base font-bold text-ink-900 hover:bg-ink-900 hover:text-white transition"
+              >
+                カリキュラムを見る
+              </a>
+            </div>
+            <dl class="mt-10 grid grid-cols-3 gap-6 max-w-md">
+              <div>
+                <dt class="text-xs text-ink-700 font-medium">章数</dt>
+                <dd class="mt-1 text-2xl font-black">
+                  <span class="gradient-text">9</span>
+                  <span class="text-base text-ink-700">章</span>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs text-ink-700 font-medium">所要時間</dt>
+                <dd class="mt-1 text-2xl font-black">
+                  <span class="gradient-text">2.5</span>
+                  <span class="text-base text-ink-700">時間</span>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs text-ink-700 font-medium">受講料</dt>
+                <dd class="mt-1 text-2xl font-black">
+                  <span class="gradient-text">無料</span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="relative">
+            <div class="code-window p-5 text-sm font-mono">
+              <div class="flex items-center gap-1.5 mb-4">
+                <span class="h-3 w-3 rounded-full bg-red-500"></span>
+                <span class="h-3 w-3 rounded-full bg-yellow-500"></span>
+                <span class="h-3 w-3 rounded-full bg-green-500"></span>
+                <span class="ml-3 text-xs text-slate-400">terminal — claude</span>
+              </div>
+              <div class="space-y-2">
+                <p class="code-line">
+                  <span class="prompt">$</span>
+                  <span class="text">claude</span>
+                </p>
+                <p class="code-line text-slate-400 text-xs">
+                  <span class="comment"># Claude Code v1.0 — line-group-bot</span>
+                </p>
+                <p class="code-line">
+                  <span class="prompt">&gt;</span>
+                  <span class="text">server.mjs を読んで、初心者向けに説明して</span>
+                </p>
+                <p class="code-line text-slate-300 mt-3 leading-relaxed">
+                  <span class="text-emerald-400">●</span>
+                  ファイルを読みました。このコードは LINE からの<br />
+                  メッセージを受け取って Claude API で回答する<br />
+                  Bot のメインサーバーです。
+                </p>
+                <p class="code-line">
+                  <span class="prompt">&gt;</span>
+                  <span class="text">.env を .env.example から作って</span>
+                </p>
+                <p class="code-line text-slate-300 leading-relaxed">
+                  <span class="text-emerald-400">●</span>
+                  .env を作成しました
+                  <span class="text-emerald-400">✓</span>
+                </p>
+                <p class="code-line">
+                  <span class="prompt">&gt;</span>
+                  <span class="text blink">▌</span>
+                </p>
+              </div>
+            </div>
+            <div
+              class="absolute -bottom-6 -right-6 rounded-2xl bg-white border border-slate-200 shadow-xl p-4 max-w-xs hidden lg:block"
+            >
+              <div class="flex items-start gap-3">
+                <div class="h-10 w-10 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0">
+                  <svg
+                    class="h-5 w-5 text-brand-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-bold text-sm">日本語で指示するだけ</p>
+                  <p class="text-xs text-ink-700 mt-1">
+                    コピペ往復はもう不要。AI がファイルを読み・書き・実行します。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="py-20 lg:py-28 bg-slate-50">
+        <div class="max-w-6xl mx-auto px-6">
+          <div class="text-center max-w-2xl mx-auto">
+            <p class="text-sm font-bold tracking-wider text-brand-600">
+              この教材の特長
+            </p>
+            <h2 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight">
+              "わからない" を残さない 3 つの工夫
+            </h2>
+          </div>
+
+          <div class="mt-14 grid md:grid-cols-3 gap-6">
+            <article class="bg-white rounded-2xl p-8 border border-slate-100">
+              <div class="h-12 w-12 rounded-xl bg-brand-100 flex items-center justify-center">
+                <svg
+                  class="h-6 w-6 text-brand-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  />
+                </svg>
+              </div>
+              <h3 class="mt-5 text-xl font-bold">ターミナル未体験から始まる</h3>
+              <p class="mt-3 text-ink-700 leading-relaxed">
+                <code class="bg-slate-100 rounded px-1.5 py-0.5 text-sm">pwd</code>
+                <code class="bg-slate-100 rounded px-1.5 py-0.5 text-sm ml-1">ls</code>
+                <code class="bg-slate-100 rounded px-1.5 py-0.5 text-sm ml-1">cd</code>
+                といった基本コマンドの説明から始まります。「黒い画面が怖い」を解消。
+              </p>
+            </article>
+
+            <article class="bg-white rounded-2xl p-8 border border-slate-100">
+              <div class="h-12 w-12 rounded-xl bg-brand-100 flex items-center justify-center">
+                <svg
+                  class="h-6 w-6 text-brand-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h3 class="mt-5 text-xl font-bold">実プロジェクトを題材に</h3>
+              <p class="mt-3 text-ink-700 leading-relaxed">
+                架空のサンプルではなく <strong>line-group-bot</strong> という実在するプロジェクトで演習。<br />
+                "本物のコード" に AI で触れる体験ができます。
+              </p>
+            </article>
+
+            <article class="bg-white rounded-2xl p-8 border border-slate-100">
+              <div class="h-12 w-12 rounded-xl bg-brand-100 flex items-center justify-center">
+                <svg
+                  class="h-6 w-6 text-brand-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  />
+                </svg>
+              </div>
+              <h3 class="mt-5 text-xl font-bold">壊さない・取り返せる</h3>
+              <p class="mt-3 text-ink-700 leading-relaxed">
+                git を使った戻し方、プランモードでの安全確認まで丁寧に解説。<br />
+                <strong>失敗が許される</strong>環境で安心して挑戦できます。
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="chapters" class="py-20 lg:py-28">
+        <div class="max-w-6xl mx-auto px-6">
+          <div class="text-center max-w-2xl mx-auto">
+            <p class="text-sm font-bold tracking-wider text-brand-600">
+              カリキュラム
+            </p>
+            <h2 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight">
+              全 9 章のステップアップ構成
+            </h2>
+            <p class="mt-4 text-ink-700">
+              1 章あたり 10〜20 分。1 日 1 章ずつ進めるのもおすすめです。
+            </p>
+          </div>
+
+          <div class="mt-14 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <a
+              href="../tutorial/01-claude-code-とは.md"
+              class="chapter-card group block bg-white rounded-2xl p-6 border-2 border-slate-100"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-brand-600">CH 01</span>
+                <span class="text-xs text-ink-700">10分</span>
+              </div>
+              <h3 class="mt-3 text-lg font-bold">Claude Code とは何か？</h3>
+              <p class="mt-2 text-sm text-ink-700 leading-relaxed">
+                ChatGPT との違い、できること、料金など全体像をつかむ
+              </p>
+            </a>
+
+            <a
+              href="../tutorial/02-セットアップ.md"
+              class="chapter-card group block bg-white rounded-2xl p-6 border-2 border-slate-100"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-brand-600">CH 02</span>
+                <span class="text-xs text-ink-700">20分</span>
+              </div>
+              <h3 class="mt-3 text-lg font-bold">セットアップ</h3>
+              <p class="mt-2 text-sm text-ink-700 leading-relaxed">
+                Node.js のインストール、Claude Code のログインまで一気通貫
+              </p>
+            </a>
+
+            <a
+              href="../tutorial/03-初めての対話.md"
+              class="chapter-card group block bg-white rounded-2xl p-6 border-2 border-slate-100"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-brand-600">CH 03</span>
+                <span class="text-xs text-ink-700">15分</span>
+              </div>
+              <h3 class="mt-3 text-lg font-bold">初めての対話</h3>
+              <p class="mt-2 text-sm text-ink-700 leading-relaxed">
+                起動して質問してみる。良い指示の書き方を体得する
+              </p>
+            </a>
+
+            <a
+              href="../tutorial/04-ファイル操作.md"
+              class="chapter-card group block bg-white rounded-2xl p-6 border-2 border-slate-100"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-brand-600">CH 04</span>
+                <span class="text-xs text-ink-700">20分</span>
+              </div>
+              <h3 class="mt-3 text-lg font-bold">ファイル操作</h3>
+              <p class="mt-2 text-sm text-ink-700 leading-relaxed">
+                作る・直す・元に戻す。git による安全なやり直し方も学ぶ
+              </p>
+            </a>
+
+            <a
+              href="../tutorial/05-claude-md活用.md"
+              class="chapter-card group block bg-white rounded-2xl p-6 border-2 border-slate-100"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-brand-600">CH 05</span>
+                <span class="text-xs text-ink-700">15分</span>
+              </div>
+              <h3 class="mt-3 text-lg font-bold">CLAUDE.md 活用</h3>
+              <p class="mt-2 text-sm text-ink-700 leading-relaxed">
+                プロジェクト情報を伝えて Claude を「分かってる前提」で動かす
+              </p>
+            </a>
+
+            <a
+              href="../tutorial/06-スラッシュコマンド.md"
+              class="chapter-card group block bg-white rounded-2xl p-6 border-2 border-slate-100"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-brand-600">CH 06</span>
+                <span class="text-xs text-ink-700">10分</span>
+              </div>
+              <h3 class="mt-3 text-lg font-bold">スラッシュコマンド</h3>
+              <p class="mt-2 text-sm text-ink-700 leading-relaxed">
+                /help, /clear, /model, /cost ... ショートカット集
+              </p>
+            </a>
+
+            <a
+              href="../tutorial/07-便利な機能.md"
+              class="chapter-card group block bg-white rounded-2xl p-6 border-2 border-slate-100"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-brand-600">CH 07</span>
+                <span class="text-xs text-ink-700">20分</span>
+              </div>
+              <h3 class="mt-3 text-lg font-bold">便利な機能</h3>
+              <p class="mt-2 text-sm text-ink-700 leading-relaxed">
+                プランモード・TODO・サブエージェント・並列実行など
+              </p>
+            </a>
+
+            <a
+              href="../tutorial/08-応用機能.md"
+              class="chapter-card group block bg-white rounded-2xl p-6 border-2 border-slate-100"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-brand-600">CH 08</span>
+                <span class="text-xs text-ink-700">20分</span>
+              </div>
+              <h3 class="mt-3 text-lg font-bold">応用機能</h3>
+              <p class="mt-2 text-sm text-ink-700 leading-relaxed">
+                フック・MCP・IDE 連携・Agent SDK の世界へ
+              </p>
+            </a>
+
+            <a
+              href="../tutorial/09-トラブルシューティング.md"
+              class="chapter-card group block bg-white rounded-2xl p-6 border-2 border-slate-100"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono font-bold text-brand-600">CH 09</span>
+                <span class="text-xs text-ink-700">10分</span>
+              </div>
+              <h3 class="mt-3 text-lg font-bold">トラブルシューティング</h3>
+              <p class="mt-2 text-sm text-ink-700 leading-relaxed">
+                よくあるエラーと対処法。困ったら戻ってくる章
+              </p>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="for-whom" class="py-20 lg:py-28 bg-ink-900 text-white">
+        <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <p class="text-sm font-bold tracking-wider text-brand-400">
+              こんな方に
+            </p>
+            <h2 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight">
+              "AI に丸ごとお願いしたい"<br />
+              すべての人へ
+            </h2>
+            <p class="mt-6 text-lg text-slate-300 leading-relaxed">
+              プログラミング未経験でも、Claude Code を使えば「コードを書く側」になれます。<br />
+              この教材は、そんなあなたの最初の一歩を支えます。
+            </p>
+          </div>
+          <ul class="space-y-4">
+            <li class="flex items-start gap-4 bg-white/5 rounded-xl p-5 border border-white/10">
+              <span class="text-brand-400 text-2xl">✓</span>
+              <div>
+                <p class="font-bold">プログラミングはほぼ未経験</p>
+                <p class="mt-1 text-sm text-slate-400">
+                  「Hello World」も書いたことが無くて OK
+                </p>
+              </div>
+            </li>
+            <li class="flex items-start gap-4 bg-white/5 rounded-xl p-5 border border-white/10">
+              <span class="text-brand-400 text-2xl">✓</span>
+              <div>
+                <p class="font-bold">ChatGPT は使ったことがある</p>
+                <p class="mt-1 text-sm text-slate-400">
+                  AI と日本語で会話する感覚を、コード作業にも応用したい
+                </p>
+              </div>
+            </li>
+            <li class="flex items-start gap-4 bg-white/5 rounded-xl p-5 border border-white/10">
+              <span class="text-brand-400 text-2xl">✓</span>
+              <div>
+                <p class="font-bold">ターミナルが怖い</p>
+                <p class="mt-1 text-sm text-slate-400">
+                  画面の開き方からゆっくり覚えていきましょう
+                </p>
+              </div>
+            </li>
+            <li class="flex items-start gap-4 bg-white/5 rounded-xl p-5 border border-white/10">
+              <span class="text-brand-400 text-2xl">✓</span>
+              <div>
+                <p class="font-bold">"作りたいもの" がある</p>
+                <p class="mt-1 text-sm text-slate-400">
+                  Bot、Web ページ、自動化スクリプト ... 何でも OK
+                </p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="faq" class="py-20 lg:py-28">
+        <div class="max-w-3xl mx-auto px-6">
+          <div class="text-center">
+            <p class="text-sm font-bold tracking-wider text-brand-600">FAQ</p>
+            <h2 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight">
+              よくある質問
+            </h2>
+          </div>
+          <div class="mt-12 space-y-4">
+            <details class="group bg-slate-50 rounded-2xl p-6 border border-slate-100">
+              <summary class="font-bold text-lg cursor-pointer flex items-center justify-between">
+                <span>本当にプログラミング未経験でも大丈夫？</span>
+                <span class="text-brand-500 group-open:rotate-45 transition">+</span>
+              </summary>
+              <p class="mt-4 text-ink-700 leading-relaxed">
+                はい。ターミナルの開き方から説明しています。「分からない言葉」は Claude Code 自身に質問しながら進められるので、教材を読んでわからなくても止まりません。
+              </p>
+            </details>
+            <details class="group bg-slate-50 rounded-2xl p-6 border border-slate-100">
+              <summary class="font-bold text-lg cursor-pointer flex items-center justify-between">
+                <span>Mac と Windows どちらでも使える？</span>
+                <span class="text-brand-500 group-open:rotate-45 transition">+</span>
+              </summary>
+              <p class="mt-4 text-ink-700 leading-relaxed">
+                両方で動きます。02章のセットアップで、それぞれの OS での操作を説明しています。
+              </p>
+            </details>
+            <details class="group bg-slate-50 rounded-2xl p-6 border border-slate-100">
+              <summary class="font-bold text-lg cursor-pointer flex items-center justify-between">
+                <span>料金はかかる？</span>
+                <span class="text-brand-500 group-open:rotate-45 transition">+</span>
+              </summary>
+              <p class="mt-4 text-ink-700 leading-relaxed">
+                教材自体は無料です。Claude Code を動かすには Claude Pro（月20ドル程度）または API 利用料が必要です。詳しくは 01章で説明しています。
+              </p>
+            </details>
+            <details class="group bg-slate-50 rounded-2xl p-6 border border-slate-100">
+              <summary class="font-bold text-lg cursor-pointer flex items-center justify-between">
+                <span>どれくらいで身につく？</span>
+                <span class="text-brand-500 group-open:rotate-45 transition">+</span>
+              </summary>
+              <p class="mt-4 text-ink-700 leading-relaxed">
+                通読するだけなら 2.5 時間ほど。実際に手を動かしながらなら、1 日 30 分 × 1 週間が目安です。
+              </p>
+            </details>
+            <details class="group bg-slate-50 rounded-2xl p-6 border border-slate-100">
+              <summary class="font-bold text-lg cursor-pointer flex items-center justify-between">
+                <span>line-group-bot を使わないと学べない？</span>
+                <span class="text-brand-500 group-open:rotate-45 transition">+</span>
+              </summary>
+              <p class="mt-4 text-ink-700 leading-relaxed">
+                いいえ。題材として使っているだけなので、概念は他のプロジェクトにそのまま応用できます。自分の好きなプロジェクトで試しながら読んでも OK です。
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="py-20 lg:py-24 bg-gradient-to-br from-brand-500 to-brand-700 text-white">
+        <div class="max-w-3xl mx-auto px-6 text-center">
+          <h2 class="text-3xl lg:text-5xl font-black tracking-tight">
+            AI と一緒に作る、はじめの一歩。
+          </h2>
+          <p class="mt-6 text-lg lg:text-xl text-brand-50">
+            読み終えた頃には、もうあなたは Claude Code 経験者です。
+          </p>
+          <a
+            href="../tutorial/README.md"
+            class="mt-10 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-black text-brand-700 shadow-2xl hover:bg-brand-50 transition"
+          >
+            無料で学習をはじめる
+            <svg
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M13 7l5 5m0 0l-5 5m5-5H6"
+              />
+            </svg>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="py-10 border-t border-slate-100">
+      <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-ink-700">
+        <div class="flex items-center gap-2 font-bold">
+          <span
+            class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500 text-white text-xs"
+            >C</span
+          >
+          <span>Claude Code Tutorial</span>
+        </div>
+        <p>
+          題材：
+          <a
+            href="https://github.com/syn05021110-boop/line-group-bot"
+            class="underline hover:text-brand-600"
+            >line-group-bot</a
+          >
+          ／ 教材：
+          <a href="../tutorial/README.md" class="underline hover:text-brand-600"
+            >docs/tutorial</a
+          >
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
