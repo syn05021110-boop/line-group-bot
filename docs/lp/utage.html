@@ -187,6 +187,62 @@
   .lp-root .lp-faq-plus {
     transition: transform 0.2s;
   }
+
+  /* ===== CTA ボタン（Tailwind に頼らず堅牢に） ===== */
+  .lp-root .lp-cta {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none !important;
+    font-weight: 800;
+    border-radius: 12px;
+    line-height: 1.2;
+    white-space: nowrap;
+    transition:
+      transform 0.15s ease,
+      filter 0.15s ease,
+      background 0.15s ease,
+      color 0.15s ease;
+    cursor: pointer;
+  }
+  .lp-root .lp-cta:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+  }
+  .lp-root .lp-cta-primary {
+    background: #f0761e;
+    color: #ffffff !important;
+    padding: 14px 28px;
+    font-size: 16px;
+    box-shadow: 0 10px 25px -5px rgba(240, 118, 30, 0.45);
+  }
+  .lp-root .lp-cta-primary:hover {
+    background: #e15c14;
+  }
+  .lp-root .lp-cta-outline {
+    background: transparent;
+    color: #0f172a !important;
+    padding: 12px 26px;
+    font-size: 16px;
+    border: 2px solid #0f172a;
+  }
+  .lp-root .lp-cta-outline:hover {
+    background: #0f172a;
+    color: #ffffff !important;
+  }
+  .lp-root .lp-cta-final {
+    background: #ffffff;
+    color: #bb4513 !important;
+    padding: 18px 36px;
+    font-size: 18px;
+    font-weight: 900;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+  }
+  .lp-root .lp-cta-final:hover {
+    background: #fef7ee;
+    color: #bb4513 !important;
+  }
 </style>
 
 <div class="lp-root">
@@ -198,24 +254,9 @@
     >
       <div>
         <span class="inline-flex items-center gap-2 rounded-full bg-brand-100 text-brand-700 px-3 py-1 text-xs font-bold tracking-wider"><span class="inline-block h-2 w-2 rounded-full bg-brand-500"></span>プログラミング未経験 OK</span>
-        <h1 class="mt-6 text-4xl lg:text-6xl font-black leading-tight tracking-tight">AI に "お願いするだけ" で<br />コードが動く時代へ。</h1>
+        <h1 class="mt-6 text-4xl lg:text-6xl font-black leading-tight tracking-tight">AI に "お願いするだけ" でコードが動く時代へ。</h1>
         <p class="mt-6 text-lg lg:text-xl text-ink-700 leading-relaxed"><span class="lp-gradient-text font-bold">Claude Code</span> は、あなたのパソコンの中で実際に作業してくれる AI アシスタント。この教材で、<strong>ターミナルの開き方から MCP まで</strong>全部わかります。</p>
-        <div class="mt-8 flex flex-col sm:flex-row gap-3">
-          <a
-            href="https://utage-system.com/p/P8RZmter21Ai"
-            class="lp-cta inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-6 py-3.5 text-base font-bold text-white shadow-lg hover:bg-brand-600 transition"
-            style="box-shadow: 0 10px 25px -5px rgba(240, 118, 30, 0.4)"
-          >
-            教材を読みはじめる →
-          </a>
-          <a
-            href="#lp-chapters"
-            class="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-base font-bold text-ink-900 hover:bg-ink-900 hover:text-white transition"
-            style="border: 2px solid #0f172a"
-          >
-            カリキュラムを見る
-          </a>
-        </div>
+        <div class="mt-8 flex flex-col sm:flex-row gap-3"><a href="https://utage-system.com/p/P8RZmter21Ai" class="lp-cta lp-cta-primary">教材を読みはじめる →</a><a href="#lp-chapters" class="lp-cta lp-cta-outline">カリキュラムを見る</a></div>
         <dl class="mt-10 grid grid-cols-3 gap-6 max-w-md">
           <div>
             <dt class="text-xs text-ink-700 font-medium">章数</dt>
@@ -477,7 +518,7 @@
         <p class="text-sm font-bold tracking-wider" style="color: #f39342">
           こんな方に
         </p>
-        <h2 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight">"AI に丸ごとお願いしたい"<br />すべての人へ</h2>
+        <h2 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight">"AI に丸ごとお願いしたい" すべての人へ</h2>
         <p class="mt-6 text-lg leading-relaxed" style="color: #cbd5e1">プログラミング未経験でも、Claude Code を使えば「コードを書く側」になれます。この教材は、そんなあなたの最初の一歩を支えます。</p>
       </div>
       <ul class="space-y-4">
@@ -622,7 +663,7 @@
     <div class="max-w-5xl mx-auto px-6">
       <div class="text-center max-w-2xl mx-auto">
         <p class="text-sm font-bold tracking-wider text-brand-600">学習後の未来</p>
-        <h2 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight">読み終わった頃のあなたは、<br />こうなっています。</h2>
+        <h2 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight">読み終わった頃のあなたは、こうなっています。</h2>
         <p class="mt-4 text-ink-700">"AI に頼める" は、これからの時代の新しいスキルです。</p>
       </div>
 
@@ -662,7 +703,7 @@
 
       <div class="mt-14 rounded-2xl p-8 lg:p-10 text-center" style="background: #0f172a; color: white">
         <p class="text-sm font-bold tracking-wider" style="color: #f39342">そして何より</p>
-        <p class="mt-3 text-2xl lg:text-3xl font-black leading-relaxed">「AI を使いこなせる人」は、<br />これからの時代の <span class="lp-gradient-text">必須スキル</span> です。</p>
+        <p class="mt-3 text-2xl lg:text-3xl font-black leading-relaxed">「AI を使いこなせる人」は、これからの時代の <span class="lp-gradient-text">必須スキル</span> です。</p>
         <p class="mt-5 text-base" style="color: #cbd5e1">今ここで始めるかどうかが、3 年後の景色を変えます。</p>
       </div>
     </div>
@@ -674,19 +715,9 @@
     style="background: linear-gradient(135deg, #f0761e 0%, #bb4513 100%)"
   >
     <div class="max-w-3xl mx-auto px-6 text-center">
-      <h2 class="text-3xl lg:text-5xl font-black tracking-tight">
-        AI と一緒に作る、はじめの一歩。
-      </h2>
-      <p class="mt-6 text-lg lg:text-xl" style="color: #fef7ee">
-        読み終えた頃には、もうあなたは Claude Code 経験者です。
-      </p>
-      <a
-        href="https://utage-system.com/p/P8RZmter21Ai"
-        class="lp-cta mt-10 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-black text-brand-700 transition"
-        style="box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2)"
-      >
-        無料で学習をはじめる →
-      </a>
+      <h2 class="text-3xl lg:text-5xl font-black tracking-tight">AI と一緒に作る、はじめの一歩。</h2>
+      <p class="mt-6 text-lg lg:text-xl" style="color: #fef7ee">読み終えた頃には、もうあなたは Claude Code 経験者です。</p>
+      <div class="mt-10"><a href="https://utage-system.com/p/P8RZmter21Ai" class="lp-cta lp-cta-final">無料で学習をはじめる →</a></div>
     </div>
   </section>
 </div>
