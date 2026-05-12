@@ -4,8 +4,9 @@
   使い方:
     1. UTAGE のページ編集で「カスタムHTML」or「コード」ブロックを追加
     2. このファイルの中身を全部コピペ
-    3. CTA ボタン（class="lp-cta") の href="#REPLACE_TUTORIAL_URL"
-       を実際の教材公開先URLに置き換える
+    3. CTA ボタンの href は UTAGE 販売ページに設定済み
+       (https://utage-system.com/p/P8RZmter21Ai)
+       他のURLに変えたい場合は class="lp-cta" の a タグ 2 箇所を編集
 
   特徴:
     - すべてのスタイルは .lp-root スコープに閉じ込めてあるので
@@ -196,29 +197,12 @@
       class="relative max-w-6xl mx-auto px-6 py-20 lg:py-28 grid lg:grid-cols-2 gap-12 items-center"
     >
       <div>
-        <span
-          class="inline-flex items-center gap-2 rounded-full bg-brand-100 text-brand-700 px-3 py-1 text-xs font-bold tracking-wider"
-        >
-          <span class="inline-block h-2 w-2 rounded-full bg-brand-500"></span>
-          プログラミング未経験 OK
-        </span>
-        <h1
-          class="mt-6 text-4xl lg:text-6xl font-black leading-tight tracking-tight"
-        >
-          AI に "お願いするだけ" で<br />
-          コードが動く時代へ。
-        </h1>
-        <p class="mt-6 text-lg lg:text-xl text-ink-700 leading-relaxed">
-          <span class="lp-gradient-text font-bold">Claude Code</span>
-          は、あなたのパソコンの中で実際に作業してくれる AI アシスタント。<br />
-          この教材で、<strong
-            >ターミナルの開き方から MCP まで</strong
-          >
-          全部わかります。
-        </p>
+        <span class="inline-flex items-center gap-2 rounded-full bg-brand-100 text-brand-700 px-3 py-1 text-xs font-bold tracking-wider"><span class="inline-block h-2 w-2 rounded-full bg-brand-500"></span>プログラミング未経験 OK</span>
+        <h1 class="mt-6 text-4xl lg:text-6xl font-black leading-tight tracking-tight">AI に "お願いするだけ" で<br />コードが動く時代へ。</h1>
+        <p class="mt-6 text-lg lg:text-xl text-ink-700 leading-relaxed"><span class="lp-gradient-text font-bold">Claude Code</span> は、あなたのパソコンの中で実際に作業してくれる AI アシスタント。この教材で、<strong>ターミナルの開き方から MCP まで</strong>全部わかります。</p>
         <div class="mt-8 flex flex-col sm:flex-row gap-3">
           <a
-            href="#REPLACE_TUTORIAL_URL"
+            href="https://utage-system.com/p/P8RZmter21Ai"
             class="lp-cta inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-6 py-3.5 text-base font-bold text-white shadow-lg hover:bg-brand-600 transition"
             style="box-shadow: 0 10px 25px -5px rgba(240, 118, 30, 0.4)"
           >
@@ -271,36 +255,16 @@
               class="h-3 w-3 rounded-full"
               style="background: #22c55e"
             ></span>
-            <span class="ml-3 text-xs" style="color: #94a3b8"
-              >terminal — claude</span
-            >
+            <span class="ml-3 text-xs" style="color: #94a3b8">terminal — claude</span>
           </div>
           <div class="space-y-2" style="font-family: ui-monospace, monospace">
             <p><span class="prompt">$</span> claude</p>
-            <p class="text-xs">
-              <span class="comment"># Claude Code v1.0 — line-group-bot</span>
-            </p>
-            <p>
-              <span class="prompt">&gt;</span>
-              server.mjs を読んで、初心者向けに説明して
-            </p>
-            <p class="mt-3 leading-relaxed" style="color: #cbd5e1">
-              <span style="color: #34d399">●</span> ファイルを読みました。このコードは LINE からの<br />
-              メッセージを受け取って Claude API で回答する<br />
-              Bot のメインサーバーです。
-            </p>
-            <p>
-              <span class="prompt">&gt;</span>
-              .env を .env.example から作って
-            </p>
-            <p class="leading-relaxed" style="color: #cbd5e1">
-              <span style="color: #34d399">●</span> .env を作成しました
-              <span style="color: #34d399">✓</span>
-            </p>
-            <p>
-              <span class="prompt">&gt;</span>
-              <span class="lp-blink">▌</span>
-            </p>
+            <p class="text-xs"><span class="comment"># Claude Code v1.0 — line-group-bot</span></p>
+            <p><span class="prompt">&gt;</span> server.mjs を読んで、初心者向けに説明して</p>
+            <p class="mt-3 leading-relaxed" style="color: #cbd5e1"><span style="color: #34d399">●</span> ファイルを読みました。このコードは LINE からのメッセージを受け取って Claude API で回答する Bot のメインサーバーです。</p>
+            <p><span class="prompt">&gt;</span> .env を .env.example から作って</p>
+            <p class="leading-relaxed" style="color: #cbd5e1"><span style="color: #34d399">●</span> .env を作成しました <span style="color: #34d399">✓</span></p>
+            <p><span class="prompt">&gt;</span> <span class="lp-blink">▌</span></p>
           </div>
         </div>
       </div>
@@ -332,24 +296,7 @@
             🖥️
           </div>
           <h3 class="mt-5 text-xl font-bold">ターミナル未体験から始まる</h3>
-          <p class="mt-3 text-ink-700 leading-relaxed">
-            <code
-              class="bg-slate-100 rounded px-1.5 py-0.5 text-sm"
-              style="background: #f1f5f9"
-              >pwd</code
-            >
-            <code
-              class="bg-slate-100 rounded px-1.5 py-0.5 text-sm ml-1"
-              style="background: #f1f5f9"
-              >ls</code
-            >
-            <code
-              class="bg-slate-100 rounded px-1.5 py-0.5 text-sm ml-1"
-              style="background: #f1f5f9"
-              >cd</code
-            >
-            といった基本コマンドの説明から始まります。<br />「黒い画面が怖い」を解消。
-          </p>
+          <p class="mt-3 text-ink-700 leading-relaxed"><code class="rounded px-1.5 py-0.5 text-sm" style="background: #f1f5f9">pwd</code> <code class="rounded px-1.5 py-0.5 text-sm" style="background: #f1f5f9">ls</code> <code class="rounded px-1.5 py-0.5 text-sm" style="background: #f1f5f9">cd</code> といった基本コマンドの説明から始まります。「黒い画面が怖い」を解消。</p>
         </article>
 
         <article
@@ -362,11 +309,7 @@
             🧪
           </div>
           <h3 class="mt-5 text-xl font-bold">実プロジェクトを題材に</h3>
-          <p class="mt-3 text-ink-700 leading-relaxed">
-            架空のサンプルではなく
-            <strong>line-group-bot</strong> という実在するプロジェクトで演習。
-            "本物のコード" に AI で触れる体験ができます。
-          </p>
+          <p class="mt-3 text-ink-700 leading-relaxed">架空のサンプルではなく <strong>line-group-bot</strong> という実在するプロジェクトで演習。"本物のコード" に AI で触れる体験ができます。</p>
         </article>
 
         <article
@@ -379,10 +322,7 @@
             🛡️
           </div>
           <h3 class="mt-5 text-xl font-bold">壊さない・取り返せる</h3>
-          <p class="mt-3 text-ink-700 leading-relaxed">
-            git を使った戻し方、プランモードでの安全確認まで丁寧に解説。
-            <strong>失敗が許される</strong>環境で安心して挑戦できます。
-          </p>
+          <p class="mt-3 text-ink-700 leading-relaxed">git を使った戻し方、プランモードでの安全確認まで丁寧に解説。<strong>失敗が許される</strong>環境で安心して挑戦できます。</p>
         </article>
       </div>
     </div>
@@ -537,17 +477,8 @@
         <p class="text-sm font-bold tracking-wider" style="color: #f39342">
           こんな方に
         </p>
-        <h2 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight">
-          "AI に丸ごとお願いしたい"<br />
-          すべての人へ
-        </h2>
-        <p
-          class="mt-6 text-lg leading-relaxed"
-          style="color: #cbd5e1"
-        >
-          プログラミング未経験でも、Claude Code を使えば「コードを書く側」になれます。
-          この教材は、そんなあなたの最初の一歩を支えます。
-        </p>
+        <h2 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight">"AI に丸ごとお願いしたい"<br />すべての人へ</h2>
+        <p class="mt-6 text-lg leading-relaxed" style="color: #cbd5e1">プログラミング未経験でも、Claude Code を使えば「コードを書く側」になれます。この教材は、そんなあなたの最初の一歩を支えます。</p>
       </div>
       <ul class="space-y-4">
         <li
@@ -686,6 +617,57 @@
     </div>
   </section>
 
+  <!-- ===== FUTURE / IDEAL OUTCOME ===== -->
+  <section class="py-20 lg:py-28" style="background: linear-gradient(180deg, #fef7ee 0%, #ffffff 100%)">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto">
+        <p class="text-sm font-bold tracking-wider text-brand-600">学習後の未来</p>
+        <h2 class="mt-3 text-3xl lg:text-4xl font-black tracking-tight">読み終わった頃のあなたは、<br />こうなっています。</h2>
+        <p class="mt-4 text-ink-700">"AI に頼める" は、これからの時代の新しいスキルです。</p>
+      </div>
+
+      <div class="mt-14 grid md:grid-cols-2 gap-5">
+        <div class="bg-white rounded-2xl p-7" style="border: 1px solid #fdedd6; box-shadow: 0 10px 30px -15px rgba(240, 118, 30, 0.2)">
+          <div class="flex items-center gap-3">
+            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white text-lg font-black">1</span>
+            <h3 class="text-xl font-bold">エラーで止まらなくなる</h3>
+          </div>
+          <p class="mt-4 text-ink-700 leading-relaxed">画面に出た赤い文字を AI に貼り付けるだけで、原因と対処が日本語で返ってきます。「分からないから諦める」が、もう起こりません。</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-7" style="border: 1px solid #fdedd6; box-shadow: 0 10px 30px -15px rgba(240, 118, 30, 0.2)">
+          <div class="flex items-center gap-3">
+            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white text-lg font-black">2</span>
+            <h3 class="text-xl font-bold">アイデアが形になる</h3>
+          </div>
+          <p class="mt-4 text-ink-700 leading-relaxed">「こんな Bot 欲しい」「あのツール自動化したい」が、自分の手元で形になります。今まで諦めていた小さなアイデアを、片っ端から試せるようになります。</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-7" style="border: 1px solid #fdedd6; box-shadow: 0 10px 30px -15px rgba(240, 118, 30, 0.2)">
+          <div class="flex items-center gap-3">
+            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white text-lg font-black">3</span>
+            <h3 class="text-xl font-bold">外注費が浮く</h3>
+          </div>
+          <p class="mt-4 text-ink-700 leading-relaxed">月数万円のサブスクや、エンジニアへの外注に頼っていた小さな改修を自分で完結できます。"作れる側" になると、コスト感覚も大きく変わります。</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-7" style="border: 1px solid #fdedd6; box-shadow: 0 10px 30px -15px rgba(240, 118, 30, 0.2)">
+          <div class="flex items-center gap-3">
+            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white text-lg font-black">4</span>
+            <h3 class="text-xl font-bold">時間が AI に外注できる</h3>
+          </div>
+          <p class="mt-4 text-ink-700 leading-relaxed">面倒な作業は AI に頼んで、あなたは "本当にやりたいこと" に集中。1 人で複数人分の仕事を回せるようになります。</p>
+        </div>
+      </div>
+
+      <div class="mt-14 rounded-2xl p-8 lg:p-10 text-center" style="background: #0f172a; color: white">
+        <p class="text-sm font-bold tracking-wider" style="color: #f39342">そして何より</p>
+        <p class="mt-3 text-2xl lg:text-3xl font-black leading-relaxed">「AI を使いこなせる人」は、<br />これからの時代の <span class="lp-gradient-text">必須スキル</span> です。</p>
+        <p class="mt-5 text-base" style="color: #cbd5e1">今ここで始めるかどうかが、3 年後の景色を変えます。</p>
+      </div>
+    </div>
+  </section>
+
   <!-- ===== FINAL CTA ===== -->
   <section
     class="py-20 lg:py-24 text-white"
@@ -699,7 +681,7 @@
         読み終えた頃には、もうあなたは Claude Code 経験者です。
       </p>
       <a
-        href="#REPLACE_TUTORIAL_URL"
+        href="https://utage-system.com/p/P8RZmter21Ai"
         class="lp-cta mt-10 inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-black text-brand-700 transition"
         style="box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2)"
       >

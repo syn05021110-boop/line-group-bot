@@ -23,18 +23,13 @@ UTAGE にログインし、新規ページを作成または既存ページを�
 
 このリポジトリの `docs/lp/utage.html` を開き、**全ての中身をコピー** して、UTAGE のコードブロックに貼り付けます。
 
-### 4. CTA リンクを差し替える
+### 4. CTA リンクの確認
 
-ファイル内に2箇所ある `href="#REPLACE_TUTORIAL_URL"` を、実際の教材公開先 URL に置き換えてください。
+CTA ボタン（class="lp-cta"）の遷移先は、UTAGE 販売ページ
+`https://utage-system.com/p/P8RZmter21Ai` に設定済みです。
 
-例：
-```html
-<!-- 変更前 -->
-<a href="#REPLACE_TUTORIAL_URL" class="lp-cta ...">
-
-<!-- 変更後（例：GitHub にホストする場合） -->
-<a href="https://github.com/syn05021110-boop/line-group-bot/blob/main/docs/tutorial/README.md" class="lp-cta ...">
-```
+別の URL に変えたい場合は、ファイル内 2 箇所の
+`href="https://utage-system.com/p/P8RZmter21Ai"` を編集してください。
 
 ### 5. プレビューで確認
 
@@ -52,7 +47,9 @@ UTAGE のプレビュー機能で表示を確認します。崩れがある場�
 | Tailwind 優先度 | `important: ".lp-root"` で UTAGE の CSS に負けにくく |
 | 追従ヘッダー | 撤去（UTAGE のグローバルヘッダーと衝突するため） |
 | 内部ナビ | カリキュラムへのアンカー `#lp-chapters` のみ残置 |
-| CTA リンク | `#REPLACE_TUTORIAL_URL` プレースホルダで差し替え前提 |
+| CTA リンク | UTAGE 販売ページ `https://utage-system.com/p/P8RZmter21Ai` を設定済み |
+| 改行対策 | UTAGE が自動 `<br>` 挿入する問題を避けるため、流れる本文は1行に整形 |
+| 理想の未来セクション | FAQ と最終 CTA の間に「読み終わった頃のあなた」を訴求するブロックを追加 |
 | フォント | Noto Sans JP を Google Fonts から読み込み |
 
 ---
