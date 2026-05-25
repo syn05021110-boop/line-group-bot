@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "dev": "node --watch server.mjs"
+    "dev": "node --watch server.mjs",
+    "init-affiliate": "node tools/init-affiliate-sheets.mjs",
+    "generate-posts": "node tools/generate-posts.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

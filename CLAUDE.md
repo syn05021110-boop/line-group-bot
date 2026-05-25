@@ -10,6 +10,12 @@ npm install                          # 依存関係インストール
 npm start                            # サーバー起動（本番）
 npm run dev                          # サーバー起動（開発・ファイル変更で自動再起動）
 node tools/init-spreadsheet.mjs      # 管理スプシを新規作成（初回のみ）
+
+# アフィリエイト投稿生成ツール
+npm run init-affiliate               # アフィリエイト用シートを既存スプシに追加（初回のみ）
+npm run generate-posts               # DMM/FANZA から作品取得 → 投稿候補を生成
+npm run generate-posts -- --hits=10 --sort=date    # オプション付き実行
+npm run generate-posts -- --dry-run                # 書き込まず生成内容のみ表示
 ```
 
 ## プロジェクト構成
@@ -20,10 +26,14 @@ line-group-bot/
 ├── package.json
 ├── server.mjs               ← メインサーバー（Express + LINE Webhook）
 ├── lib/
-│   ├── ai.mjs              ← Claude API 回答生成
-│   └── sheets.mjs          ← Google Sheets 読み書き（3シート対応）
+│   ├── ai.mjs               ← Claude API 回答生成（LINE Bot 用）
+│   ├── sheets.mjs           ← Google Sheets 読み書き
+│   ├── dmm.mjs              ← DMM/FANZA Web Service API クライアント
+│   └── affiliate.mjs        ← Claude による投稿文生成
 ├── tools/
-│   └── init-spreadsheet.mjs ← 管理スプシ作成スクリプト
+│   ├── init-spreadsheet.mjs       ← 管理スプシ作成スクリプト
+│   ├── init-affiliate-sheets.mjs  ← アフィリエイト用シート追加
+│   └── generate-posts.mjs         ← アフィリエイト投稿候補生成
 ├── credentials/
 │   └── tokens.json          ← Google OAuth トークン
 ├── .env                     ← 環境変数（秘匿）
@@ -95,7 +105,60 @@ GOOGLE_CLIENT_SECRET         # Google OAuth クライアントシークレット
 SPREADSHEET_ID               # line-group-bot 管理スプレッドシートID
 ADMIN_USER_ID                # 管理者の LINE ユーザーID（スキップ対象）
 PORT                         # サーバーポート（デフォルト: 3000）
+DMM_API_ID                   # DMM/FANZA Web Service の API ID（投稿生成用）
+DMM_AFFILIATE_ID             # DMM アフィリエイトID（例: foobar-990）
 ```
+
+## アフィリエイト投稿生成ツール
+
+LINE Bot 本体とは独立した補助ツール。
+DMM/FANZA Web Service API から作品情報を取得し、Claude で X (Twitter) 用の紹介投稿文を生成して、
+スプシに保存する。**投稿自体は手動コピペで行う**（自動投稿はしない）。
+
+### なぜ自動投稿しないか
+
+- X の自動投稿は規約上、同一/類似テキストの繰り返しやアフィリエイトリンク大量投稿はスパム判定でBAN対象
+- Threads (Meta) はアダルトコンテンツ全面禁止
+- DMM/FANZA アフィリエイト規約上も、不自然な大量流入は報酬却下・アカウント停止対象
+
+→ 「投稿文の下書きを高速で大量生成して人間が選別・投稿」が現実的で持続可能。
+
+### 初回セットアップ
+
+1. https://affiliate.dmm.com/api/ で API ID を発行
+2. アフィリエイト管理画面でアフィリエイトID（例: `foobar-990`）を確認
+3. `.env` に `DMM_API_ID` と `DMM_AFFILIATE_ID` を追加
+4. `npm run init-affiliate` で既存スプシに以下2シートを追加:
+   - `アフィリエイト_プロンプト` — A1セルに投稿生成プロンプト（編集可）
+   - `アフィリエイト_候補` — 生成された投稿候補
+
+### 運用フロー
+
+```
+npm run generate-posts -- --hits=10
+    ↓
+1. DMM/FANZA API から作品取得（hits件）
+2. 既にスプシに登録済みの作品IDを除外（重複防止）
+3. アフィリエイト_プロンプト シートから生成プロンプトを取得
+4. 各作品について Claude で投稿文を生成
+5. アフィリエイト_候補 シートに追記
+    ↓
+スプシを開いて投稿文+リンクを X に手動コピペ投稿
+（ステータス列を「投稿済」に手動更新すると管理しやすい）
+```
+
+### コマンドオプション
+
+| オプション | 説明 | デフォルト |
+|----------|------|----------|
+| `--site` | DMM.com / FANZA | FANZA |
+| `--service` | digital / mono / rental など | digital |
+| `--floor` | videoa（アダルト動画）など | videoa |
+| `--sort` | rank / date / review / -price | rank |
+| `--hits` | 取得件数（最大100） | 20 |
+| `--offset` | 検索開始位置 | 1 |
+| `--keyword` | 検索キーワード | (なし) |
+| `--dry-run` | スプシに書き込まず内容確認 | - |
 
 ## デプロイ（Render.com）
 
