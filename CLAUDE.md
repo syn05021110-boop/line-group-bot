@@ -16,6 +16,9 @@ npm run init-affiliate               # アフィリエイト用シートを既�
 npm run generate-posts               # DMM/FANZA から作品取得 → 投稿候補を生成
 npm run generate-posts -- --hits=10 --sort=date    # オプション付き実行
 npm run generate-posts -- --dry-run                # 書き込まず生成内容のみ表示
+
+# 自動投稿デーモン（X への完全自動投稿）
+npm run auto-post                    # 候補生成 + X 自動投稿を継続実行
 ```
 
 ## プロジェクト構成
@@ -29,11 +32,13 @@ line-group-bot/
 │   ├── ai.mjs               ← Claude API 回答生成（LINE Bot 用）
 │   ├── sheets.mjs           ← Google Sheets 読み書き
 │   ├── dmm.mjs              ← DMM/FANZA Web Service API クライアント
-│   └── affiliate.mjs        ← Claude による投稿文生成
+│   ├── affiliate.mjs        ← Claude による投稿文生成
+│   └── x-poster.mjs         ← X (Twitter) API v2 への投稿
 ├── tools/
 │   ├── init-spreadsheet.mjs       ← 管理スプシ作成スクリプト
 │   ├── init-affiliate-sheets.mjs  ← アフィリエイト用シート追加
-│   └── generate-posts.mjs         ← アフィリエイト投稿候補生成
+│   ├── generate-posts.mjs         ← アフィリエイト投稿候補生成
+│   └── auto-post.mjs              ← X 自動投稿デーモン
 ├── credentials/
 │   └── tokens.json          ← Google OAuth トークン
 ├── .env                     ← 環境変数（秘匿）
@@ -107,6 +112,13 @@ ADMIN_USER_ID                # 管理者の LINE ユーザーID（スキップ�
 PORT                         # サーバーポート（デフォルト: 3000）
 DMM_API_ID                   # DMM/FANZA Web Service の API ID（投稿生成用）
 DMM_AFFILIATE_ID             # DMM アフィリエイトID（例: foobar-990）
+X_API_KEY                    # X (Twitter) API Consumer Key（自動投稿用）
+X_API_SECRET                 # X API Consumer Secret
+X_ACCESS_TOKEN               # X User Access Token
+X_ACCESS_TOKEN_SECRET        # X User Access Token Secret
+POST_INTERVAL_HOURS          # 投稿間隔（時間、デフォルト 4）
+GENERATE_INTERVAL_HOURS      # 候補生成間隔（時間、デフォルト 24）
+POSTS_PER_GENERATION         # 1サイクルで生成する候補数（デフォルト 10）
 ```
 
 ## アフィリエイト投稿生成ツール
@@ -159,6 +171,53 @@ npm run generate-posts -- --hits=10
 | `--offset` | 検索開始位置 | 1 |
 | `--keyword` | 検索キーワード | (なし) |
 | `--dry-run` | スプシに書き込まず内容確認 | - |
+
+## 自動投稿デーモン（auto-post）
+
+`npm run auto-post` で起動。以下を継続的に実行する:
+
+```
+起動
+  ↓
+[起動時] 候補生成サイクル + 投稿サイクルを1回ずつ実行
+  ↓
+GENERATE_INTERVAL_HOURS ごと:
+  DMM/FANZA から新作取得 → Claude で投稿文生成 → スプシ追記
+POST_INTERVAL_HOURS ごと:
+  スプシから未投稿の最古の候補を1件取り出し → X に投稿 → ステータス更新
+```
+
+### 事前準備
+
+1. https://developer.x.com/ で開発者アカウント申請
+2. Basic プラン以上を契約（**月$100、v2 API で投稿するために必須**）
+3. アプリを作成、`Read and Write` 権限を付与
+4. 「Keys and Tokens」で4つのキーを発行し `.env` に設定
+5. X アカウント設定 → プライバシーと安全性 → 「メディアにセンシティブな内容を含む」をON
+
+### デプロイ（Render.com Background Worker）
+
+自動投稿デーモンは長時間動かす必要があるため Web Service ではなく
+**Background Worker** としてデプロイする:
+
+1. Render.com で New → Background Worker
+2. リポジトリを連携
+3. ビルドコマンド: `npm install`
+4. スタートコマンド: `npm run auto-post`
+5. 全環境変数を設定（DMM/X/Anthropic/Google 全部）
+
+### 投稿頻度の指針
+
+| `POST_INTERVAL_HOURS` | 1日あたり | リスク |
+|---|---|---|
+| 6 | 4投稿 | 低（推奨） |
+| 4 | 6投稿 | 低〜中（デフォルト） |
+| 2 | 12投稿 | 中（凍結報告例あり） |
+| 1 | 24投稿 | 高（短期間で凍結の可能性） |
+| 0.5 | 48投稿 | 極めて高い（スパム判定確実） |
+
+短すぎる間隔は X 側のスパム検出で凍結対象になる。
+特に新規アカウントは Trust Score が低いため、最初の数週間は 6 時間間隔推奨。
 
 ## デプロイ（Render.com）
 
