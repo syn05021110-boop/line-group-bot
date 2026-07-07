@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>副業ドラフト｜Threads × note 下書きツール</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <h1>副業ドラフト</h1>
+        <p class="tagline">自己ヒヤリングで強みを見つけ、Threads と note の下書きを作る</p>
+      </div>
+    </header>
+
+    <nav class="steps wrap" aria-label="進行ステップ">
+      <div class="step is-active" data-step="1"><span>1</span>ヒヤリング</div>
+      <div class="step" data-step="2"><span>2</span>強み棚卸し</div>
+      <div class="step" data-step="3"><span>3</span>下書き生成</div>
+    </nav>
+
+    <main class="wrap">
+      <!-- STEP 1: ヒヤリング -->
+      <section id="panel-hearing" class="panel is-active">
+        <div id="intro" class="intro-card">
+          <h2>まずは3〜5分、自分のことを話してみましょう</h2>
+          <p>
+            AIがあなたに質問していきます。思いつくままで大丈夫。<br />
+            会話の中から「副業で売れる/活かせる強み」を一緒に見つけます。
+          </p>
+          <button id="startBtn" class="btn btn-primary">ヒヤリングを始める</button>
+        </div>
+
+        <div id="chat" class="chat hidden">
+          <div id="messages" class="messages"></div>
+          <form id="answerForm" class="answer-form">
+            <textarea
+              id="answerInput"
+              rows="2"
+              placeholder="回答を入力…（Enterで送信 / Shift+Enterで改行）"
+            ></textarea>
+            <button type="submit" class="btn btn-primary" id="sendBtn">送信</button>
+          </form>
+          <p class="hint">十分に話が集まると、自動で「強み棚卸し」に進みます。</p>
+        </div>
+      </section>
+
+      <!-- STEP 2: 強み棚卸し -->
+      <section id="panel-strengths" class="panel">
+        <div id="strengths"></div>
+        <div class="cta-row">
+          <button id="toGenerateBtn" class="btn btn-primary">この強みで下書きを作る →</button>
+        </div>
+      </section>
+
+      <!-- STEP 3: 生成 -->
+      <section id="panel-generate" class="panel">
+        <div class="gen-controls">
+          <label for="themeInput">テーマ（任意・空欄なら棚卸しから自動選定）</label>
+          <input id="themeInput" type="text" placeholder="例: 未経験から副業を始める人向け" />
+          <div class="gen-buttons">
+            <button id="genThreadsBtn" class="btn btn-primary">Threads 投稿文を作る</button>
+            <button id="genNoteBtn" class="btn btn-secondary">note 下書きを作る</button>
+          </div>
+        </div>
+
+        <div id="threadsOut" class="output-block"></div>
+        <div id="noteOut" class="output-block"></div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <footer class="site-footer wrap">
+      <p>
+        ※ 生成された文章は下書きです。投稿は内容を確認してご自身で行ってください（半自動プラン）。
+      </p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

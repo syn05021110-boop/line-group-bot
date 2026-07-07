@@ -1,0 +1,15 @@
+{
+  "name": "fukugyo-draft-app",
+  "version": "0.1.0",
+  "description": "副業ヒヤリング → 強み棚卸し → Threads/note 下書き生成ツール（MVP）",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0"
+  }
+}
