@@ -41,9 +41,40 @@ app/
 │   ├── hearing.mjs      ← インタビュー進行 + 強み棚卸し
 │   ├── content.mjs      ← Threads / note 生成
 │   └── store.mjs        ← セッション保存（JSONファイル, MVP）
+├── tools/
+│   └── make-icons.mjs   ← PWAアイコン生成（依存なし・pure Node）
 ├── public/              ← フロントエンド（HTML/CSS/JS）
+│   ├── manifest.webmanifest ← PWA マニフェスト
+│   ├── sw.js            ← Service Worker（オフライン起動・キャッシュ）
+│   └── icons/           ← アイコン（192/512/apple-touch, 生成物）
 └── data/                ← セッション保存先（gitignore）
 ```
+
+## PWA（ホーム画面に追加してアプリのように使う）
+
+このアプリは PWA として動作する。スマホで開くと「ホーム画面に追加」でき、
+アプリのように全画面起動・オフラインでもシェル表示される。
+
+- **Android / Chrome**: 画面に出る「追加」バナー（またはメニューの「アプリをインストール」）
+- **iOS / Safari**: 共有ボタン →「ホーム画面に追加」
+- アイコンを作り直す場合: `npm run icons`
+
+> ⚠️ インストール（ホーム画面追加）は **HTTPS 環境が必須**（localhost は例外）。
+> スマホで実際に追加するには、下記のデプロイで HTTPS の URL を用意する。
+
+## デプロイ（Render.com 例）
+
+1. Render.com で **Web Service** を新規作成し、このリポジトリを接続
+2. **Root Directory**: `app`
+3. **Build Command**: `npm install`
+4. **Start Command**: `npm start`
+5. 環境変数に `ANTHROPIC_API_KEY` を設定（`PORT` は Render が自動注入）
+6. デプロイ後の `https://<your-app>.onrender.com` をスマホで開けば PWA として追加可能
+7. 公式LINE等の集客導線から、この URL に誘導する
+
+> Render は HTTPS を自動付与するため、PWA インストール要件を満たす。
+> セッションは現状 JSON ファイル保存（無料プランは再起動で消える可能性あり）。
+> 永続化が必要になったら DB（Phase2）へ。
 
 ## API
 

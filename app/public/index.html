@@ -2,8 +2,18 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>副業ドラフト｜Threads × note 下書きツール</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#e07a5f" />
+    <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="副業ドラフト" />
+
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -19,6 +29,14 @@
       <div class="step" data-step="2"><span>2</span>強み棚卸し</div>
       <div class="step" data-step="3"><span>3</span>下書き生成</div>
     </nav>
+
+    <div id="installBanner" class="install-banner wrap hidden">
+      <span id="installText">ホーム画面に追加して、アプリのように使えます</span>
+      <span class="install-actions">
+        <button id="installBtn" class="btn btn-ghost">追加</button>
+        <button id="installClose" class="btn-x" aria-label="閉じる">×</button>
+      </span>
+    </div>
 
     <main class="wrap">
       <!-- STEP 1: ヒヤリング -->

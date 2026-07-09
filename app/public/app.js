@@ -299,6 +299,60 @@ function buildNoteCopy(note) {
 function loading(msg) {
   return `<p class="label">⏳ ${esc(msg)}</p>`;
 }
+
+/* ---------- PWA: Service Worker + インストール導線 ---------- */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch((err) => {
+      console.warn("SW 登録失敗:", err);
+    });
+  });
+}
+
+(function installFlow() {
+  const banner = $("#installBanner");
+  const btn = $("#installBtn");
+  const closeBtn = $("#installClose");
+  const text = $("#installText");
+  if (!banner) return;
+
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+  if (isStandalone || localStorage.getItem("installDismissed")) return;
+
+  const dismiss = () => {
+    banner.classList.add("hidden");
+    localStorage.setItem("installDismissed", "1");
+  };
+  closeBtn.addEventListener("click", dismiss);
+
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  if (isIOS) {
+    // iOS は beforeinstallprompt が無いので手順を案内
+    text.textContent = "共有ボタン →「ホーム画面に追加」でアプリのように使えます";
+    btn.classList.add("hidden");
+    banner.classList.remove("hidden");
+    return;
+  }
+
+  // Android/Chrome など: ネイティブのインストールプロンプトを利用
+  let deferred = null;
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferred = e;
+    banner.classList.remove("hidden");
+  });
+  btn.addEventListener("click", async () => {
+    if (!deferred) return dismiss();
+    deferred.prompt();
+    await deferred.userChoice;
+    deferred = null;
+    dismiss();
+  });
+  window.addEventListener("appinstalled", dismiss);
+})();
 function esc(s) {
   return String(s == null ? "" : s)
     .replace(/&/g, "&amp;")
