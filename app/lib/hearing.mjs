@@ -6,6 +6,8 @@
 
 import { complete, completeJSON } from "./anthropic.mjs";
 
+const DONE_MARK = /\[\[\s*DONE\s*\]\]/i;
+
 /**
  * インタビュアーのシステムプロンプト。
  * - 1回に1つの質問だけを投げる
@@ -32,18 +34,15 @@ const INTERVIEWER_SYSTEM = `あなたは、副業で成果を出したい会社�
 6. 副業に使える時間・週何時間くらいか
 7. 発信で誰の役に立ちたいか（ターゲット像）
 
-## 進め方
-- まだ十分に深掘りできていない領域が残っているうちは、次の1問を投げる。
+## 締め方
+- まだ深掘りできていない領域が残っているうちは、ふつうに次の1問を返す。
 - 目安として7〜10往復で、売れる強みを描ける材料が集まる。
-- 材料が十分に集まったと判断したら、インタビューを締める。
+- 十分に材料が集まったと判断したら、感謝と「次に強み棚卸しを見せる」旨の温かい一言で締める。
+- 締めるときだけ、メッセージの一番最後に半角で [[DONE]] とだけ書き足す（画面には出さない内部マーカー）。まだ続けるときは [[DONE]] を絶対に書かない。
 
-## 出力形式（厳守）
-必ず次のJSONだけを返す。前後に説明文やコードフェンスを付けない。
-{
-  "done": false,            // まだ質問を続けるなら false、締めるなら true
-  "reply": "ここに相手への一言。done=false のときは『受け止め＋次の1問』。done=true のときは温かい締めの言葉（次に強み棚卸しを見せる旨）。",
-  "progress": 3             // 現在おおよそ何往復目か（1〜10の整数）
-}`;
+## 出力（厳守）
+- 返答は自然な日本語の文章だけにする。JSON・コード・箇条書きの多用はしない。
+- 1メッセージにつき質問は1つまで。`;
 
 /**
  * 強み棚卸しのシステムプロンプト（インタビュー全体を渡して総括）
@@ -94,17 +93,18 @@ export async function interviewTurn(transcript, userAnswer) {
     });
   }
 
-  const result = await completeJSON({
+  // 会話は自然な文章で受け取り、締めサインだけを内部マーカーで判定（壊れにくい）
+  const text = await complete({
     system: INTERVIEWER_SYSTEM,
     messages,
-    maxTokens: 1024,
+    maxTokens: 900,
   });
 
-  return {
-    done: Boolean(result.done),
-    reply: String(result.reply || "").trim(),
-    progress: Number(result.progress) || transcript.length,
-  };
+  const done = DONE_MARK.test(text);
+  const reply = text.replace(DONE_MARK, "").trim();
+  const progress = messages.filter((m) => m.role === "assistant").length + 1;
+
+  return { done, reply, progress };
 }
 
 /**

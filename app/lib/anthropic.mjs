@@ -46,8 +46,17 @@ export async function complete({ system, messages, maxTokens = 4096 }) {
  * ```json フェンスや前後の説明文が混ざっても最初の JSON を抽出する。
  */
 export async function completeJSON({ system, messages, maxTokens = 4096 }) {
-  const text = await complete({ system, messages, maxTokens });
-  return extractJSON(text);
+  try {
+    const text = await complete({ system, messages, maxTokens });
+    return extractJSON(text);
+  } catch {
+    // 失敗したら一度だけ、より厳しめの指示で再試行
+    const strict =
+      system +
+      "\n\n【最重要】出力は指定のJSONオブジェクトのみ。前後に説明文・挨拶・コードフェンス（```）を一切付けないこと。";
+    const text = await complete({ system: strict, messages, maxTokens });
+    return extractJSON(text);
+  }
 }
 
 /**
