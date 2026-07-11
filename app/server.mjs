@@ -124,10 +124,10 @@ app.post(
     if (!session || !session.profile)
       return res.status(400).json({ error: "先にヒヤリングを完了してください" });
 
-    const posts = await generateThreads(session.profile, theme);
-    session.drafts.threads = posts;
+    const result = await generateThreads(session.profile, theme);
+    session.drafts.threads = result;
     saveSession(session);
-    res.json({ posts });
+    res.json(result);
   })
 );
 

@@ -174,9 +174,13 @@ function renderStrengths(p) {
     .map((t) => `<span class="chip">${esc(t)}</span>`)
     .join("");
 
+  const catch_ = p.catchcopy
+    ? `<div class="kicker">あなたのキャッチコピー</div><div class="catchcopy">${esc(p.catchcopy)}</div>`
+    : "<h2>あなたの強み棚卸し</h2>";
+
   els.strengths.innerHTML = `
     <div class="summary-card">
-      <h2>あなたの強み棚卸し</h2>
+      ${catch_}
       <p>${esc(p.summary)}</p>
       <p class="label">主なターゲット: ${esc(p.audience || "")}</p>
     </div>
@@ -201,7 +205,7 @@ els.genThreadsBtn.addEventListener("click", async () => {
       sessionId: state.sessionId,
       theme,
     });
-    renderThreads(data.posts || []);
+    renderThreads(data);
   } catch (err) {
     els.threadsOut.innerHTML = `<p class="label">エラー: ${esc(err.message)}</p>`;
   } finally {
@@ -226,13 +230,29 @@ els.genNoteBtn.addEventListener("click", async () => {
   }
 });
 
-function renderThreads(posts) {
-  if (!posts.length) {
+function renderThreads(data) {
+  const posts = (data && data.posts) || [];
+  const bio = (data && data.bio) || "";
+  if (!posts.length && !bio) {
     els.threadsOut.innerHTML = `<p class="label">生成できませんでした。もう一度お試しください。</p>`;
     return;
   }
+
+  const bioCard = bio
+    ? `<div class="section-title">📌 プロフィール文（bio）案</div>
+       <div class="bio-card">
+         <div class="theme">Threadsプロフィール</div>
+         <div class="post-body">${esc(bio)}</div>
+         <div class="card-actions">
+           <button class="btn btn-ghost" id="copyBioBtn">コピー</button>
+         </div>
+         <textarea class="hidden" id="bioText">${esc(bio)}</textarea>
+       </div>`
+    : "";
+
   els.threadsOut.innerHTML =
-    `<div class="section-title">Threads 投稿案（${posts.length}件）</div>` +
+    bioCard +
+    `<div class="section-title">✏️ Threads 投稿案（${posts.length}件）</div>` +
     posts
       .map((post, i) => {
         const tags = (post.hashtags || []).join(" ");
@@ -256,6 +276,8 @@ function renderThreads(posts) {
       copyText($(`#tpost-${i}`).value, btn);
     });
   });
+  const bioBtn = $("#copyBioBtn");
+  if (bioBtn) bioBtn.addEventListener("click", () => copyText($("#bioText").value, bioBtn));
 }
 
 function renderNote(note) {
@@ -297,7 +319,7 @@ function buildNoteCopy(note) {
 
 /* ---------- helpers ---------- */
 function loading(msg) {
-  return `<p class="label">⏳ ${esc(msg)}</p>`;
+  return `<div class="loading">${esc(msg)}</div>`;
 }
 
 /* ---------- PWA: Service Worker + インストール導線 ---------- */
