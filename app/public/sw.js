@@ -1,9 +1,10 @@
 /* 副業ドラフト — Service Worker
- * アプリシェル(HTML/CSS/JS/アイコン)をキャッシュしてオフライン起動＆高速化。
+ * 方針: アプリのファイル(HTML/CSS/JS/アイコン)は「ネット優先」で取得する。
+ *   → 常に最新の見た目に更新される。オフライン時だけ保存済みを表示。
  * API(/api/*)や POST は常にネットワーク（キャッシュしない）。
  */
 
-const CACHE = "fukugyo-draft-v1";
+const CACHE = "fukugyo-draft-v3"; // 更新時はここの数字を上げる
 const SHELL = [
   "/",
   "/index.html",
@@ -35,28 +36,24 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
 
   // GET 以外・API・別オリジンはそのままネットワークへ（キャッシュ対象外）
-  if (request.method !== "GET" || url.pathname.startsWith("/api/") || url.origin !== self.location.origin) {
+  if (
+    request.method !== "GET" ||
+    url.pathname.startsWith("/api/") ||
+    url.origin !== self.location.origin
+  ) {
     return;
   }
 
-  // ナビゲーション（ページ遷移）はネット優先→失敗時キャッシュ（オフライン起動用）
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request).catch(() => caches.match("/index.html").then((r) => r || caches.match("/")))
-    );
-    return;
-  }
-
-  // 静的アセットはキャッシュ優先→無ければネット取得してキャッシュ
+  // ネット優先: 最新を取得しキャッシュを更新。失敗(オフライン)時のみキャッシュを返す。
   event.respondWith(
-    caches.match(request).then(
-      (cached) =>
-        cached ||
-        fetch(request).then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((cache) => cache.put(request, copy));
-          return res;
-        })
-    )
+    fetch(request)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((cache) => cache.put(request, copy));
+        return res;
+      })
+      .catch(() =>
+        caches.match(request).then((cached) => cached || caches.match("/index.html"))
+      )
   );
 });

@@ -324,6 +324,13 @@ function loading(msg) {
 
 /* ---------- PWA: Service Worker + インストール導線 ---------- */
 if ("serviceWorker" in navigator) {
+  // 新しいServiceWorkerが有効化されたら、一度だけ自動リロードして最新表示に切り替える
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch((err) => {
       console.warn("SW 登録失敗:", err);
