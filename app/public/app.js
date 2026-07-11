@@ -19,16 +19,20 @@ const els = {
   strengths: $("#strengths"),
   toGenerateBtn: $("#toGenerateBtn"),
   themeInput: $("#themeInput"),
+  genProfilesBtn: $("#genProfilesBtn"),
   genCalBtn: $("#genCalBtn"),
   genThreadsBtn: $("#genThreadsBtn"),
   genXBtn: $("#genXBtn"),
   genInstaBtn: $("#genInstaBtn"),
+  genTikTokBtn: $("#genTikTokBtn"),
   genNoteBtn: $("#genNoteBtn"),
   genPaidBtn: $("#genPaidBtn"),
+  profilesOut: $("#profilesOut"),
   calOut: $("#calOut"),
   threadsOut: $("#threadsOut"),
   xOut: $("#xOut"),
   instaOut: $("#instaOut"),
+  tiktokOut: $("#tiktokOut"),
   noteOut: $("#noteOut"),
   paidOut: $("#paidOut"),
   toast: $("#toast"),
@@ -268,9 +272,87 @@ function wireGen(btn, outEl, path, label, renderFn) {
     }
   });
 }
+wireGen(els.genProfilesBtn, els.profilesOut, "/api/generate/profiles", "プロフィール一括", renderProfiles);
 wireGen(els.genCalBtn, els.calOut, "/api/generate/calendar", "1週間カレンダー", renderCalendar);
 wireGen(els.genInstaBtn, els.instaOut, "/api/generate/instagram", "Instagram投稿", renderInstagram);
+wireGen(els.genTikTokBtn, els.tiktokOut, "/api/generate/tiktok", "TikTok台本", renderTikTok);
 wireGen(els.genPaidBtn, els.paidOut, "/api/generate/paidnote", "有料note構成案", renderPaidNote);
+
+function renderProfiles(p) {
+  if (!p || (!p.headline && !p.threads)) {
+    els.profilesOut.innerHTML = `<p class="label">生成できませんでした。もう一度お試しください。</p>`;
+    return;
+  }
+  const rows = [
+    ["共通キャッチ", p.headline],
+    ["Threads", p.threads],
+    ["X（旧Twitter）", p.x],
+    ["Instagram", p.instagram],
+    ["note", p.note],
+  ]
+    .filter((r) => r[1])
+    .map(
+      (r, i) => `<div class="post-card">
+        <div class="theme">${esc(r[0])}</div>
+        <div class="post-body">${esc(r[1])}</div>
+        <div class="card-actions"><button class="btn btn-ghost" data-prof="${i}">コピー</button></div>
+        <textarea class="hidden" id="prof-${i}">${esc(r[1])}</textarea>
+      </div>`
+    )
+    .join("");
+  els.profilesOut.innerHTML = `<div class="section-title">👤 プロフィール一括（全SNS）</div>${rows}`;
+  els.profilesOut.querySelectorAll("[data-prof]").forEach((btn) => {
+    btn.addEventListener("click", () => copyText($(`#prof-${btn.dataset.prof}`).value, btn));
+  });
+}
+
+function renderTikTok(data) {
+  const scripts = (data && data.scripts) || [];
+  if (!scripts.length) {
+    els.tiktokOut.innerHTML = `<p class="label">生成できませんでした。もう一度お試しください。</p>`;
+    return;
+  }
+  const cards = scripts
+    .map((s, i) => {
+      const scenes = (s.scenes || [])
+        .map(
+          (sc, j) => `<div class="post-body" style="margin-bottom:8px">
+            <span class="label">シーン${j + 1}</span><br />
+            <b>テロップ:</b> ${esc(sc.telop || "")}<br />
+            <b>セリフ:</b> ${esc(sc.serif || "")}
+          </div>`
+        )
+        .join("");
+      const tags = (s.hashtags || []).join(" ");
+      const full = buildTikTokCopy(s);
+      return `<div class="post-card">
+        <div class="theme">${esc(s.theme || "台本 " + (i + 1))}｜${esc(s.duration || "")}</div>
+        <p><span class="label">フック:</span> ${esc(s.hook || "")}</p>
+        ${scenes}
+        <p><span class="label">CTA:</span> ${esc(s.cta || "")}</p>
+        <p><span class="label">キャプション:</span> ${esc(s.caption || "")} ${esc(tags)}</p>
+        <div class="card-actions"><button class="btn btn-ghost" data-tt="${i}">台本をコピー</button></div>
+        <textarea class="hidden" id="tt-${i}">${esc(full)}</textarea>
+      </div>`;
+    })
+    .join("");
+  els.tiktokOut.innerHTML = `<div class="section-title">🎬 TikTok / ショート動画 台本（${scripts.length}件）</div>${cards}`;
+  els.tiktokOut.querySelectorAll("[data-tt]").forEach((btn) => {
+    btn.addEventListener("click", () => copyText($(`#tt-${btn.dataset.tt}`).value, btn));
+  });
+}
+
+function buildTikTokCopy(s) {
+  const lines = [`【${s.theme || "台本"}】(${s.duration || ""})`, `フック: ${s.hook || ""}`, ""];
+  (s.scenes || []).forEach((sc, j) => {
+    lines.push(`シーン${j + 1}`);
+    lines.push(`  テロップ: ${sc.telop || ""}`);
+    lines.push(`  セリフ: ${sc.serif || ""}`);
+  });
+  lines.push("", `CTA: ${s.cta || ""}`);
+  lines.push("", `キャプション: ${s.caption || ""} ${(s.hashtags || []).join(" ")}`);
+  return lines.join("\n");
+}
 
 function renderCalendar(data) {
   const days = (data && data.days) || [];

@@ -23,6 +23,8 @@ import {
   generateInstagram,
   generateCalendar,
   generatePaidNote,
+  generateTikTok,
+  generateProfiles,
 } from "./lib/content.mjs";
 
 const PROJECT_ROOT = dirname(import.meta.url.replace("file://", ""));
@@ -131,7 +133,7 @@ app.post(
     if (!session || !session.profile)
       return res.status(400).json({ error: "先にヒヤリングを完了してください" });
 
-    const result = await generateThreads(session.profile, theme);
+    const result = await generateThreads(session.profile, theme, session.transcript);
     session.drafts.threads = result;
     saveSession(session);
     res.json(result);
@@ -149,7 +151,7 @@ app.post(
     if (!session || !session.profile)
       return res.status(400).json({ error: "先にヒヤリングを完了してください" });
 
-    const result = await generateX(session.profile, theme);
+    const result = await generateX(session.profile, theme, session.transcript);
     session.drafts.x = result;
     saveSession(session);
     res.json(result);
@@ -167,7 +169,7 @@ app.post(
     if (!session || !session.profile)
       return res.status(400).json({ error: "先にヒヤリングを完了してください" });
 
-    const note = await generateNote(session.profile, theme);
+    const note = await generateNote(session.profile, theme, session.transcript);
     session.drafts.note = note;
     saveSession(session);
     res.json({ note });
@@ -181,7 +183,7 @@ function generationRoute(draftKey, generator) {
     const session = getSession(sessionId);
     if (!session || !session.profile)
       return res.status(400).json({ error: "先にヒヤリングを完了してください" });
-    const result = await generator(session.profile, theme);
+    const result = await generator(session.profile, theme, session.transcript);
     session.drafts[draftKey] = result;
     saveSession(session);
     res.json(result);
@@ -189,8 +191,10 @@ function generationRoute(draftKey, generator) {
 }
 
 app.post("/api/generate/instagram", generationRoute("instagram", generateInstagram));
+app.post("/api/generate/tiktok", generationRoute("tiktok", generateTikTok));
 app.post("/api/generate/calendar", generationRoute("calendar", generateCalendar));
 app.post("/api/generate/paidnote", generationRoute("paidnote", generatePaidNote));
+app.post("/api/generate/profiles", generationRoute("profiles", generateProfiles));
 
 /**
  * セッションの現在状態を取得（リロード復帰用）

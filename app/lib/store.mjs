@@ -55,9 +55,11 @@ export function createSession() {
     turns: 0,
     profile: null,
     drafts: {
+      profiles: null,
       threads: null,
       x: null,
       instagram: null,
+      tiktok: null,
       calendar: null,
       note: null,
       paidnote: null,
