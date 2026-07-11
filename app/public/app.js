@@ -335,7 +335,7 @@ function loading(msg) {
     setTimeout(() => el.remove(), 650);
   };
   // 演出が終わったら自動で本編へ（タップでスキップ可）
-  setTimeout(hide, reduce ? 300 : 2300);
+  setTimeout(hide, reduce ? 300 : 3000);
   el.addEventListener("click", hide);
 })();
 
