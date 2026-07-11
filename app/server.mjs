@@ -16,7 +16,14 @@ import dotenv from "dotenv";
 
 import { createSession, getSession, saveSession } from "./lib/store.mjs";
 import { interviewTurn, synthesizeStrengths } from "./lib/hearing.mjs";
-import { generateThreads, generateNote, generateX } from "./lib/content.mjs";
+import {
+  generateThreads,
+  generateNote,
+  generateX,
+  generateInstagram,
+  generateCalendar,
+  generatePaidNote,
+} from "./lib/content.mjs";
 
 const PROJECT_ROOT = dirname(import.meta.url.replace("file://", ""));
 dotenv.config({ path: join(PROJECT_ROOT, ".env") });
@@ -166,6 +173,24 @@ app.post(
     res.json({ note });
   })
 );
+
+// 生成系エンドポイントの共通ファクトリ（profile必須・結果をdraftsに保存）
+function generationRoute(draftKey, generator) {
+  return wrap(async (req, res) => {
+    const { sessionId, theme } = req.body || {};
+    const session = getSession(sessionId);
+    if (!session || !session.profile)
+      return res.status(400).json({ error: "先にヒヤリングを完了してください" });
+    const result = await generator(session.profile, theme);
+    session.drafts[draftKey] = result;
+    saveSession(session);
+    res.json(result);
+  });
+}
+
+app.post("/api/generate/instagram", generationRoute("instagram", generateInstagram));
+app.post("/api/generate/calendar", generationRoute("calendar", generateCalendar));
+app.post("/api/generate/paidnote", generationRoute("paidnote", generatePaidNote));
 
 /**
  * セッションの現在状態を取得（リロード復帰用）

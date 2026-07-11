@@ -19,12 +19,18 @@ const els = {
   strengths: $("#strengths"),
   toGenerateBtn: $("#toGenerateBtn"),
   themeInput: $("#themeInput"),
+  genCalBtn: $("#genCalBtn"),
   genThreadsBtn: $("#genThreadsBtn"),
   genXBtn: $("#genXBtn"),
+  genInstaBtn: $("#genInstaBtn"),
   genNoteBtn: $("#genNoteBtn"),
+  genPaidBtn: $("#genPaidBtn"),
+  calOut: $("#calOut"),
   threadsOut: $("#threadsOut"),
   xOut: $("#xOut"),
+  instaOut: $("#instaOut"),
   noteOut: $("#noteOut"),
+  paidOut: $("#paidOut"),
   toast: $("#toast"),
 };
 
@@ -245,6 +251,129 @@ els.genNoteBtn.addEventListener("click", async () => {
     els.genNoteBtn.disabled = false;
   }
 });
+
+// 生成ボタンの共通配線
+function wireGen(btn, outEl, path, label, renderFn) {
+  btn.addEventListener("click", async () => {
+    const theme = els.themeInput.value.trim();
+    btn.disabled = true;
+    outEl.innerHTML = loading(label + "を生成中…");
+    try {
+      const data = await api(path, { sessionId: state.sessionId, theme });
+      renderFn(data);
+    } catch (err) {
+      outEl.innerHTML = `<p class="label">エラー: ${esc(err.message)}</p>`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+wireGen(els.genCalBtn, els.calOut, "/api/generate/calendar", "1週間カレンダー", renderCalendar);
+wireGen(els.genInstaBtn, els.instaOut, "/api/generate/instagram", "Instagram投稿", renderInstagram);
+wireGen(els.genPaidBtn, els.paidOut, "/api/generate/paidnote", "有料note構成案", renderPaidNote);
+
+function renderCalendar(data) {
+  const days = (data && data.days) || [];
+  if (!days.length) {
+    els.calOut.innerHTML = `<p class="label">生成できませんでした。もう一度お試しください。</p>`;
+    return;
+  }
+  const rows = days
+    .map(
+      (d) => `<div class="card">
+        <h4>${esc(d.day)}｜${esc(d.platform)}</h4>
+        <p><span class="label">テーマ:</span> ${esc(d.theme)}</p>
+        <p>${esc(d.idea)}</p>
+      </div>`
+    )
+    .join("");
+  const tip = data.tip
+    ? `<p class="hint" style="padding:10px 2px 0">💡 ${esc(data.tip)}</p>`
+    : "";
+  els.calOut.innerHTML = `<div class="section-title">📅 1週間 投稿カレンダー</div>${rows}${tip}`;
+}
+
+function renderInstagram(data) {
+  const posts = (data && data.posts) || [];
+  const carousel = data && data.carousel;
+  if (!posts.length && !carousel) {
+    els.instaOut.innerHTML = `<p class="label">生成できませんでした。もう一度お試しください。</p>`;
+    return;
+  }
+  const cards = posts
+    .map((p, i) => {
+      const tags = (p.hashtags || []).join(" ");
+      const full = [p.caption, tags].filter(Boolean).join("\n\n");
+      return `<div class="post-card">
+        <div class="theme">${esc(p.theme || "投稿案 " + (i + 1))}</div>
+        <div class="post-body">${esc(full)}</div>
+        <div class="card-actions">
+          <button class="btn btn-ghost" data-igcopy="${i}">キャプションをコピー</button>
+        </div>
+        <textarea class="hidden" id="igpost-${i}">${esc(full)}</textarea>
+      </div>`;
+    })
+    .join("");
+  let carouselCard = "";
+  if (carousel && (carousel.slides || []).length) {
+    const slides = carousel.slides
+      .map(
+        (s, i) =>
+          `<div class="post-body" style="margin-bottom:8px"><span class="label">スライド${i + 1}</span><br />${esc(s)}</div>`
+      )
+      .join("");
+    carouselCard = `<div class="section-title">🖼 カルーセル構成案</div>
+      <div class="post-card"><div class="theme">${esc(carousel.topic || "カルーセル")}</div>${slides}</div>`;
+  }
+  els.instaOut.innerHTML =
+    `<div class="section-title">📸 Instagram 投稿案（${posts.length}件）</div>` + cards + carouselCard;
+  els.instaOut.querySelectorAll("[data-igcopy]").forEach((btn) => {
+    btn.addEventListener("click", () => copyText($(`#igpost-${btn.dataset.igcopy}`).value, btn));
+  });
+}
+
+function renderPaidNote(n) {
+  if (!n || !n.outline) {
+    els.paidOut.innerHTML = `<p class="label">生成できませんでした。もう一度お試しください。</p>`;
+    return;
+  }
+  const titles = (n.titles || []).map((t) => `<li>${esc(t)}</li>`).join("");
+  const outline = (n.outline || [])
+    .map(
+      (o, i) => `<div class="card"><h4>${i + 1}. ${esc(o.heading)}</h4><p>${esc(o.detail)}</p></div>`
+    )
+    .join("");
+  const full = buildPaidCopy(n);
+  els.paidOut.innerHTML = `
+    <div class="section-title">💎 有料note 構成案</div>
+    <div class="note-card">
+      <div class="theme">タイトル案</div>
+      <ul class="title-list">${titles}</ul>
+      <p><span class="label">価格の目安:</span> ${esc(n.price_hint || "")}</p>
+      <p><span class="label">無料パート:</span> ${esc(n.free_part || "")}</p>
+      <div class="theme" style="margin-top:14px">章立て</div>
+      ${outline}
+      <p style="margin-top:14px"><span class="label">有料ライン:</span> ${esc(n.paywall || "")}</p>
+      <p><span class="label">販売CTA:</span> ${esc(n.cta || "")}</p>
+      <div class="card-actions">
+        <button class="btn btn-ghost" id="copyPaidBtn">構成をコピー</button>
+      </div>
+      <textarea class="hidden" id="paidFull">${esc(full)}</textarea>
+    </div>`;
+  $("#copyPaidBtn").addEventListener("click", (e) => copyText($("#paidFull").value, e.target));
+}
+
+function buildPaidCopy(n) {
+  const lines = ["【タイトル案】"];
+  (n.titles || []).forEach((t) => lines.push("・" + t));
+  lines.push("", "【価格の目安】" + (n.price_hint || ""));
+  lines.push("", "【無料パート】" + (n.free_part || ""));
+  lines.push("", "【章立て】");
+  (n.outline || []).forEach((o, i) => lines.push(`${i + 1}. ${o.heading}\n   ${o.detail}`));
+  lines.push("", "【有料ライン】" + (n.paywall || ""));
+  lines.push("", "【販売CTA】" + (n.cta || ""));
+  return lines.join("\n");
+}
 
 function renderThreads(data) {
   const posts = (data && data.posts) || [];
