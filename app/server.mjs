@@ -16,7 +16,7 @@ import dotenv from "dotenv";
 
 import { createSession, getSession, saveSession } from "./lib/store.mjs";
 import { interviewTurn, synthesizeStrengths } from "./lib/hearing.mjs";
-import { generateThreads, generateNote } from "./lib/content.mjs";
+import { generateThreads, generateNote, generateX } from "./lib/content.mjs";
 
 const PROJECT_ROOT = dirname(import.meta.url.replace("file://", ""));
 dotenv.config({ path: join(PROJECT_ROOT, ".env") });
@@ -126,6 +126,24 @@ app.post(
 
     const result = await generateThreads(session.profile, theme);
     session.drafts.threads = result;
+    saveSession(session);
+    res.json(result);
+  })
+);
+
+/**
+ * X（旧Twitter）投稿文を生成
+ */
+app.post(
+  "/api/generate/x",
+  wrap(async (req, res) => {
+    const { sessionId, theme } = req.body || {};
+    const session = getSession(sessionId);
+    if (!session || !session.profile)
+      return res.status(400).json({ error: "先にヒヤリングを完了してください" });
+
+    const result = await generateX(session.profile, theme);
+    session.drafts.x = result;
     saveSession(session);
     res.json(result);
   })

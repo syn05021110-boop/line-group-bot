@@ -20,8 +20,10 @@ const els = {
   toGenerateBtn: $("#toGenerateBtn"),
   themeInput: $("#themeInput"),
   genThreadsBtn: $("#genThreadsBtn"),
+  genXBtn: $("#genXBtn"),
   genNoteBtn: $("#genNoteBtn"),
   threadsOut: $("#threadsOut"),
+  xOut: $("#xOut"),
   noteOut: $("#noteOut"),
   toast: $("#toast"),
 };
@@ -213,6 +215,20 @@ els.genThreadsBtn.addEventListener("click", async () => {
   }
 });
 
+els.genXBtn.addEventListener("click", async () => {
+  const theme = els.themeInput.value.trim();
+  els.genXBtn.disabled = true;
+  els.xOut.innerHTML = loading("X 投稿文を生成中…");
+  try {
+    const data = await api("/api/generate/x", { sessionId: state.sessionId, theme });
+    renderX(data);
+  } catch (err) {
+    els.xOut.innerHTML = `<p class="label">エラー: ${esc(err.message)}</p>`;
+  } finally {
+    els.genXBtn.disabled = false;
+  }
+});
+
 els.genNoteBtn.addEventListener("click", async () => {
   const theme = els.themeInput.value.trim();
   els.genNoteBtn.disabled = true;
@@ -278,6 +294,66 @@ function renderThreads(data) {
   });
   const bioBtn = $("#copyBioBtn");
   if (bioBtn) bioBtn.addEventListener("click", () => copyText($("#bioText").value, bioBtn));
+}
+
+function renderX(data) {
+  const posts = (data && data.posts) || [];
+  const thread = data && data.thread;
+  if (!posts.length && !thread) {
+    els.xOut.innerHTML = `<p class="label">生成できませんでした。もう一度お試しください。</p>`;
+    return;
+  }
+
+  const xIntent = (t) => `https://x.com/intent/post?text=${encodeURIComponent(t)}`;
+
+  const single = posts
+    .map((post, i) => {
+      const tags = (post.hashtags || []).join(" ");
+      const full = [post.body, tags].filter(Boolean).join(" ");
+      return `<div class="post-card">
+        <div class="theme">${esc(post.theme || "投稿案 " + (i + 1))}</div>
+        <div class="post-body">${esc(full)}</div>
+        <div class="card-actions">
+          <button class="btn btn-ghost" data-xcopy="${i}">コピー</button>
+          <a class="btn btn-ghost" href="${xIntent(full)}" target="_blank" rel="noopener">Xで開く</a>
+        </div>
+        <textarea class="hidden" id="xpost-${i}">${esc(full)}</textarea>
+      </div>`;
+    })
+    .join("");
+
+  let threadCard = "";
+  if (thread && (thread.tweets || []).length) {
+    const tweets = thread.tweets
+      .map(
+        (tw, i) => `<div class="post-body" style="margin-bottom:8px">
+          <span class="label">${i + 1}/${thread.tweets.length}</span><br />${esc(tw)}
+          <div class="card-actions" style="margin-top:8px">
+            <button class="btn btn-ghost" data-xtw="${i}">この1本をコピー</button>
+            <a class="btn btn-ghost" href="${xIntent(tw)}" target="_blank" rel="noopener">Xで開く</a>
+          </div>
+          <textarea class="hidden" id="xtw-${i}">${esc(tw)}</textarea>
+        </div>`
+      )
+      .join("");
+    threadCard = `<div class="section-title">🧵 連投スレッド案</div>
+      <div class="post-card">
+        <div class="theme">${esc(thread.topic || "スレッド")}</div>
+        ${tweets}
+      </div>`;
+  }
+
+  els.xOut.innerHTML =
+    `<div class="section-title">𝕏 X（旧Twitter）単発投稿案（${posts.length}件）</div>` +
+    single +
+    threadCard;
+
+  els.xOut.querySelectorAll("[data-xcopy]").forEach((btn) => {
+    btn.addEventListener("click", () => copyText($(`#xpost-${btn.dataset.xcopy}`).value, btn));
+  });
+  els.xOut.querySelectorAll("[data-xtw]").forEach((btn) => {
+    btn.addEventListener("click", () => copyText($(`#xtw-${btn.dataset.xtw}`).value, btn));
+  });
 }
 
 function renderNote(note) {

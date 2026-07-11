@@ -76,6 +76,51 @@ const NOTE_SYSTEM = `あなたは、有料noteで累計1万部を売ったプロ
   "cta": "末尾のCTA文言"
 }`;
 
+const X_SYSTEM = `あなたは、何度もバズを生んだ X（旧Twitter）運用のプロです。
+与えられた「強み棚卸し」をもとに、その人が投稿すべき X の文章を作ります。
+
+## X の特性（重要）
+- 1ツイートは日本語で140字以内を目安に、短く鋭く。無駄な前置きは削る。
+- 1行目（書き出し）で必ず指を止めさせる。逆説・数字・断言・失敗告白を使う。
+- 本人の実体験・強みから書く。一般論・きれいごとにしない。
+- ハッシュタグは0〜2個（Xでは付けすぎない）。
+
+## 2種類を作る
+1. 単発ツイート（3〜4本）: それぞれ独立して刺さる短文。
+2. 連投スレッド（1本, 3〜5ツイート）: 価値提供型。
+   - 1ツイート目 = 続きを読ませる強いフック（「〜する方法を解説します」等）
+   - 中間 = 具体的な中身・手順・気づき（各140字以内）
+   - 最後 = 自然なCTA（プロフィール/公式LINEへ）
+
+## 出力形式（厳守）
+必ず次のJSONだけを返す。前後に説明文やコードフェンスを付けない。
+{
+  "posts": [
+    { "theme": "この投稿の切り口", "body": "ツイート全文（140字以内、そのまま投稿できる）", "hashtags": ["#タグ"] }
+  ],
+  "thread": {
+    "topic": "スレッドのテーマ",
+    "tweets": ["1ツイート目(フック)", "2ツイート目", "..."]
+  }
+}`;
+
+/**
+ * X（旧Twitter）投稿文を生成
+ * @param {Object} profile
+ * @param {string} [theme]
+ */
+export async function generateX(profile, theme) {
+  const themeLine = theme
+    ? `\n\n# 今回フォーカスするテーマ\n「${theme}」を中心に作ってください。`
+    : "";
+  const result = await completeJSON({
+    system: X_SYSTEM,
+    messages: [{ role: "user", content: profileContext(profile) + themeLine }],
+    maxTokens: 3000,
+  });
+  return { posts: result.posts || [], thread: result.thread || null };
+}
+
 /**
  * Threads 投稿文を生成
  * @param {Object} profile

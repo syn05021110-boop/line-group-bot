@@ -54,7 +54,7 @@ export function createSession() {
     transcript: [],
     turns: 0,
     profile: null,
-    drafts: { threads: null, note: null },
+    drafts: { threads: null, x: null, note: null },
   };
   sessions.set(session.id, session);
   persist();
