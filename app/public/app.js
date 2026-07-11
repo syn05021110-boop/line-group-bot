@@ -322,6 +322,23 @@ function loading(msg) {
   return `<div class="loading">${esc(msg)}</div>`;
 }
 
+/* ---------- オープニング（スプラッシュ）を閉じる ---------- */
+(function splashFlow() {
+  const el = document.getElementById("splash");
+  if (!el) return;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let closed = false;
+  const hide = () => {
+    if (closed) return;
+    closed = true;
+    el.classList.add("hide");
+    setTimeout(() => el.remove(), 650);
+  };
+  // 演出が終わったら自動で本編へ（タップでスキップ可）
+  setTimeout(hide, reduce ? 300 : 2300);
+  el.addEventListener("click", hide);
+})();
+
 /* ---------- PWA: Service Worker + インストール導線 ---------- */
 if ("serviceWorker" in navigator) {
   // 新しいServiceWorkerが有効化されたら、一度だけ自動リロードして最新表示に切り替える
