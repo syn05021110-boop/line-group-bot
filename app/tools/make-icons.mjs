@@ -14,13 +14,13 @@ import { join, dirname } from "path";
 const OUT = join(dirname(import.meta.url.replace("file://", "")), "..", "public", "icons");
 mkdirSync(OUT, { recursive: true });
 
-/* ---- 色 ---- */
+/* ---- 色（モダンな indigo → violet） ---- */
 const lerp = (a, b, t) => Math.round(a + (b - a) * t);
-const BG_TOP = [233, 150, 124];
-const BG_BOT = [198, 90, 61];
-const CREAM = [250, 247, 242];
-const BRAND = [224, 122, 95];
-const ACCENT = [61, 90, 128];
+const BG_TOP = [99, 102, 241]; // indigo #6366f1
+const BG_BOT = [168, 85, 247]; // violet #a855f7
+const CREAM = [255, 255, 255]; // white card
+const BRAND = [99, 102, 241]; // indigo bars
+const ACCENT = [16, 185, 129]; // emerald bar
 
 /** 角丸矩形の内包判定 */
 function inRoundRect(px, py, x0, y0, x1, y1, r) {
