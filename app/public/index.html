@@ -45,6 +45,7 @@
         <span class="brand-badge">✍️ AI 下書きツール</span>
         <h1>副業ドラフト</h1>
         <p class="tagline">自己ヒヤリングで強みを見つけ、Threads と note の下書きを作る</p>
+        <button id="guideBtn" class="hero-guide">📖 投稿のやり方・予約ガイド</button>
       </div>
     </header>
 
@@ -113,6 +114,10 @@
           </div>
         </div>
 
+        <button id="guideBtn2" class="btn btn-ghost" style="margin-bottom:16px">
+          📖 投稿・予約のやり方を見る
+        </button>
+
         <div id="profilesOut" class="output-block"></div>
         <div id="calOut" class="output-block"></div>
         <div id="threadsOut" class="output-block"></div>
@@ -123,6 +128,122 @@
         <div id="paidOut" class="output-block"></div>
       </section>
     </main>
+
+    <!-- 投稿ガイド モーダル -->
+    <div id="guideModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="投稿ガイド">
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h2>📖 投稿ガイド</h2>
+          <button class="btn-x" data-close aria-label="閉じる">×</button>
+        </div>
+        <p class="modal-intro">
+          生成した下書きを投稿する手順です。<b>「まとめて予約」</b>を使えば、1週間分を一気に仕込めます（＝ほぼ自動）。
+        </p>
+
+        <details open>
+          <summary>💠 Threads</summary>
+          <div class="guide-body">
+            <p class="guide-h">かんたん投稿</p>
+            <ol>
+              <li>投稿カードの「Threadsで開く」をタップ</li>
+              <li>本文が入った状態でThreadsが開く</li>
+              <li>内容を確認して「投稿」</li>
+            </ol>
+            <p class="guide-h">まとめて予約（ほぼ自動）</p>
+            <ol>
+              <li>PCで <b>Meta Business Suite</b>（business.facebook.com）を開く</li>
+              <li>Threadsアカウントを連携</li>
+              <li>「投稿を作成」→ 本文を貼り付け → 予約日時を指定</li>
+            </ol>
+            <p class="guide-note">※ Threadsの予約は対応が順次拡大中。使えない場合は手動投稿を。</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>𝕏 X（旧Twitter）</summary>
+          <div class="guide-body">
+            <p class="guide-h">かんたん投稿</p>
+            <ol>
+              <li>投稿カードの「Xで開く」をタップ</li>
+              <li>本文が入った投稿画面が開く → 確認して「ポスト」</li>
+            </ol>
+            <p class="guide-h">まとめて予約（ほぼ自動）</p>
+            <ol>
+              <li>ブラウザで <b>x.com</b> を開き、投稿を作成</li>
+              <li>作成画面の <b>カレンダー（予約）アイコン</b>をタップ</li>
+              <li>公開する日時を指定して予約</li>
+            </ol>
+          </div>
+        </details>
+
+        <details>
+          <summary>📸 Instagram</summary>
+          <div class="guide-body">
+            <p class="guide-h">かんたん投稿</p>
+            <ol>
+              <li>「キャプションをコピー」をタップ</li>
+              <li>Instagramで新規投稿 → 画像を選ぶ</li>
+              <li>キャプション欄に貼り付け → シェア</li>
+            </ol>
+            <p class="guide-h">まとめて予約（ほぼ自動）</p>
+            <ol>
+              <li>アカウントを <b>プロアカウント</b>に切り替え（無料）</li>
+              <li>PCで <b>Meta Business Suite</b> にInstagramを連携</li>
+              <li>「投稿を作成」→ 画像とキャプション → 予約日時を指定</li>
+            </ol>
+          </div>
+        </details>
+
+        <details>
+          <summary>📝 note</summary>
+          <div class="guide-body">
+            <p class="guide-h">かんたん投稿</p>
+            <ol>
+              <li>「本文をコピー」をタップ</li>
+              <li>noteで新規作成 → 貼り付け → 見出しなどを整える</li>
+              <li>「公開」</li>
+            </ol>
+            <p class="guide-h">予約公開</p>
+            <ol>
+              <li>記事の公開設定で <b>予約投稿（日時指定）</b>を選ぶ</li>
+              <li>※ 予約投稿はnoteの対応プランの機能です</li>
+            </ol>
+          </div>
+        </details>
+
+        <details>
+          <summary>🎬 TikTok / ショート動画</summary>
+          <div class="guide-body">
+            <p class="guide-h">かんたん投稿</p>
+            <ol>
+              <li>台本をもとに動画を撮影・編集</li>
+              <li>キャプションを貼り付けて投稿</li>
+            </ol>
+            <p class="guide-h">予約投稿</p>
+            <ol>
+              <li>PCで <b>tiktok.com</b> からアップロード</li>
+              <li>アップロード画面で「スケジュール」→ 日時を指定</li>
+            </ol>
+          </div>
+        </details>
+
+        <details>
+          <summary>⏰ 1週間分をまとめて仕込むコツ</summary>
+          <div class="guide-body">
+            <ol>
+              <li>「1週間カレンダー」で今週の投稿プランを作る</li>
+              <li>各媒体の投稿・下書きをまとめて生成する</li>
+              <li>休日などに、上の「まとめて予約」で1週間分を一気に予約</li>
+              <li>平日は自動で公開 → 空いた時間は反応チェックに使う</li>
+            </ol>
+            <p class="guide-note">※ 一度に大量投稿せず、1日数件に分散すると凍結リスクを避けられます。</p>
+          </div>
+        </details>
+
+        <p class="modal-note">※ 各サービスの画面・機能は更新で変わることがあります。</p>
+      </div>
+    </div>
 
     <div id="toast" class="toast"></div>
 

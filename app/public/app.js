@@ -609,6 +609,22 @@ function loading(msg) {
   return `<div class="loading">${esc(msg)}</div>`;
 }
 
+/* ---------- 投稿ガイド モーダル ---------- */
+(function guideModal() {
+  const modal = document.getElementById("guideModal");
+  if (!modal) return;
+  const open = () => modal.classList.remove("hidden");
+  const close = () => modal.classList.add("hidden");
+  ["guideBtn", "guideBtn2"].forEach((id) => {
+    const b = document.getElementById(id);
+    if (b) b.addEventListener("click", open);
+  });
+  modal.querySelectorAll("[data-close]").forEach((el) => el.addEventListener("click", close));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") close();
+  });
+})();
+
 /* ---------- オープニング（スプラッシュ）を閉じる ---------- */
 (function splashFlow() {
   const el = document.getElementById("splash");
