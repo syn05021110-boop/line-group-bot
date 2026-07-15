@@ -9,6 +9,21 @@ import { complete, completeJSON } from "./anthropic.mjs";
 const DONE_MARK = /\[\[\s*DONE\s*\]\]/i;
 
 /**
+ * モデルが稀に漏らす「会話区切り記号」や役割ラベルを、表示前に除去する。
+ * 文字列に依存せず、大文字＋アンダースコアのトークンや役割ラベル行を落とす。
+ */
+function cleanReply(text) {
+  return String(text || "")
+    // HUMAN_CONVERSATION_END / ASSISTANT_TURN_END など 大文字_大文字 のトークンを除去
+    .replace(/\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/g, "")
+    // 行頭の役割ラベル（Human: / Assistant: / User: / System:）を除去
+    .replace(/^[ \t]*(?:Human|Assistant|User|System)[ \t]*[:：]?[ \t]*/gim, "")
+    // 余分な空行を詰める
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/**
  * インタビュアーのシステムプロンプト。
  * - 1回に1つの質問だけを投げる
  * - 相手の回答を受けて深掘りする（表面で終わらせない）
@@ -111,11 +126,7 @@ export async function interviewTurn(transcript, userAnswer) {
   });
 
   const done = DONE_MARK.test(text);
-  let reply = text.replace(DONE_MARK, "");
-  // 念のため、モデルが稀に漏らす会話区切りマーカーを除去する
-  reply = reply
-    .replace(/\b(?:HUMAN|ASSISTANT|AI|USER|SYSTEM)?[_ ]?CONVERSATION[_ ]?END\b/gi, "")
-    .trim();
+  const reply = cleanReply(text.replace(DONE_MARK, ""));
   const progress = history.filter((m) => m.role === "assistant").length + 1;
 
   return { done, reply, progress };
