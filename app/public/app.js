@@ -42,12 +42,54 @@ const els = {
 async function api(path, body) {
   const res = await fetch(path, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "x-unlock-token": unlockToken() },
     body: JSON.stringify(body || {}),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "エラーが発生しました");
+  if (!res.ok) {
+    const err = new Error(data.error || "エラーが発生しました");
+    err.locked = res.status === 402 || data.locked;
+    throw err;
+  }
   return data;
+}
+
+/* ---------- 有料解放（アクセスコード） ---------- */
+const LOCKED_IDS = [
+  "genProfilesBtn",
+  "genCalBtn",
+  "genXBtn",
+  "genInstaBtn",
+  "genTikTokBtn",
+  "genNoteBtn",
+  "genPaidBtn",
+];
+function isUnlocked() {
+  return !!localStorage.getItem("unlockToken");
+}
+function unlockToken() {
+  return localStorage.getItem("unlockToken") || "";
+}
+function applyLockUI() {
+  const locked = !isUnlocked();
+  LOCKED_IDS.forEach((id) => {
+    const b = document.getElementById(id);
+    if (!b) return;
+    if (b.getAttribute("data-label") === null || b.getAttribute("data-label") === undefined) {
+      b.setAttribute("data-label", b.textContent.trim());
+    }
+    const base = b.getAttribute("data-label");
+    b.textContent = locked ? base + " 🔒" : base;
+    b.classList.toggle("is-locked", locked);
+  });
+  const hint = document.querySelector(".plan-hint");
+  if (hint) hint.textContent = locked
+    ? "🔒付きは有料プラン。まずは Threads で味見できます。"
+    : "✓ 有料プラン解放済み。すべての機能が使えます。";
+}
+function openUpgrade() {
+  const m = document.getElementById("upgradeModal");
+  if (m) m.classList.remove("hidden");
 }
 
 function toast(msg) {
@@ -226,6 +268,10 @@ els.genThreadsBtn.addEventListener("click", async () => {
 });
 
 els.genXBtn.addEventListener("click", async () => {
+  if (!isUnlocked()) {
+    openUpgrade();
+    return;
+  }
   const theme = els.themeInput.value.trim();
   els.genXBtn.disabled = true;
   els.xOut.innerHTML = loading("X 投稿文を生成中…");
@@ -240,6 +286,10 @@ els.genXBtn.addEventListener("click", async () => {
 });
 
 els.genNoteBtn.addEventListener("click", async () => {
+  if (!isUnlocked()) {
+    openUpgrade();
+    return;
+  }
   const theme = els.themeInput.value.trim();
   els.genNoteBtn.disabled = true;
   els.noteOut.innerHTML = loading("note 下書きを生成中…（少し時間がかかります）");
@@ -259,6 +309,10 @@ els.genNoteBtn.addEventListener("click", async () => {
 // 生成ボタンの共通配線
 function wireGen(btn, outEl, path, label, renderFn) {
   btn.addEventListener("click", async () => {
+    if (!isUnlocked()) {
+      openUpgrade();
+      return;
+    }
     const theme = els.themeInput.value.trim();
     btn.disabled = true;
     outEl.innerHTML = loading(label + "を生成中…");
@@ -624,6 +678,34 @@ function loading(msg) {
     if (e.key === "Escape") close();
   });
 })();
+
+/* ---------- 有料プラン（解放）モーダル ---------- */
+(function upgradeModal() {
+  const modal = document.getElementById("upgradeModal");
+  if (!modal) return;
+  modal.querySelectorAll("[data-close]").forEach((el) =>
+    el.addEventListener("click", () => modal.classList.add("hidden"))
+  );
+  const form = document.getElementById("unlockForm");
+  const msg = document.getElementById("unlockMsg");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const code = document.getElementById("unlockCode").value.trim();
+    if (!code) return;
+    msg.textContent = "確認中…";
+    try {
+      const data = await api("/api/unlock", { code });
+      localStorage.setItem("unlockToken", data.token);
+      applyLockUI();
+      modal.classList.add("hidden");
+      msg.textContent = "";
+      toast("解放しました🔓 全機能が使えます");
+    } catch (err) {
+      msg.textContent = "❌ " + err.message;
+    }
+  });
+})();
+applyLockUI();
 
 /* ---------- オープニング（スプラッシュ）を閉じる ---------- */
 (function splashFlow() {

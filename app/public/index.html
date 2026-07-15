@@ -112,6 +112,7 @@
             <button id="genNoteBtn" class="btn btn-secondary">note 下書き</button>
             <button id="genPaidBtn" class="btn btn-secondary">有料note構成案</button>
           </div>
+          <p class="plan-hint">🔒付きは有料プラン。まずは Threads で味見できます。</p>
         </div>
 
         <button id="guideBtn2" class="btn btn-ghost" style="margin-bottom:16px">
@@ -242,6 +243,44 @@
         </details>
 
         <p class="modal-note">※ 各サービスの画面・機能は更新で変わることがあります。</p>
+      </div>
+    </div>
+
+    <!-- 有料プラン（解放）モーダル -->
+    <div id="upgradeModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="有料プラン">
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h2>🔓 全機能を解放</h2>
+          <button class="btn-x" data-close aria-label="閉じる">×</button>
+        </div>
+        <p class="modal-intro">
+          無料では <b>ヒヤリング・強み棚卸し・Threads投稿（お試し3本）</b> まで使えます。<br />
+          有料プランで、下記がすべて解放されます👇
+        </p>
+        <ul class="upgrade-benefits">
+          <li>X / Instagram / TikTok の投稿・台本</li>
+          <li>note下書き・有料note構成案</li>
+          <li>プロフィール一括生成</li>
+          <li>1週間投稿カレンダー</li>
+          <li>Threads 投稿も全件（味見の3本→フル）</li>
+        </ul>
+        <!-- ↓↓↓ あなたの公式LINEのURLに変更してください ↓↓↓ -->
+        <a
+          class="btn btn-primary upgrade-cta"
+          href="https://lin.ee/XXXXXXX"
+          target="_blank"
+          rel="noopener"
+          >公式LINEで申し込む（月額 ¥5,000）</a
+        >
+        <form id="unlockForm" class="unlock-form">
+          <label for="unlockCode">解放コードをお持ちの方</label>
+          <div class="unlock-row">
+            <input id="unlockCode" type="text" placeholder="コードを入力" autocomplete="off" />
+            <button class="btn btn-secondary" type="submit">解放</button>
+          </div>
+          <p id="unlockMsg" class="guide-note"></p>
+        </form>
       </div>
     </div>
 

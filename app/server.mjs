@@ -48,6 +48,31 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", model: "claude-opus-4-8" });
 });
 
+/* ===== 有料解放（アクセスコード方式） =====
+ * UNLOCK_CODE 環境変数に設定した合言葉を、購入者に手動発行する。
+ * 無料: ヒヤリング / 強み棚卸し / Threads(3投稿までの味見)
+ * 有料: X / Instagram / TikTok / note / 有料note構成 / プロフィール一括 / カレンダー
+ */
+const UNLOCK_CODE = process.env.UNLOCK_CODE || "";
+
+function isUnlocked(req) {
+  return UNLOCK_CODE !== "" && req.get("x-unlock-token") === UNLOCK_CODE;
+}
+
+function requireUnlock(req, res) {
+  if (isUnlocked(req)) return true;
+  res.status(402).json({ error: "この機能は有料プラン限定です", locked: true });
+  return false;
+}
+
+app.post("/api/unlock", (req, res) => {
+  const code = req.body && req.body.code ? String(req.body.code).trim() : "";
+  if (UNLOCK_CODE === "")
+    return res.status(400).json({ error: "解放コードが未設定です（運営にお問い合わせください）" });
+  if (code && code === UNLOCK_CODE) return res.json({ ok: true, token: UNLOCK_CODE });
+  return res.status(401).json({ error: "コードが違います" });
+});
+
 /**
  * ヒヤリング開始：セッションを作り、最初の質問を返す
  */
@@ -134,6 +159,10 @@ app.post(
       return res.status(400).json({ error: "先にヒヤリングを完了してください" });
 
     const result = await generateThreads(session.profile, theme, session.transcript);
+    // 無料は味見として3投稿まで。解放済みは全件。
+    if (!isUnlocked(req) && Array.isArray(result.posts)) {
+      result.posts = result.posts.slice(0, 3);
+    }
     session.drafts.threads = result;
     saveSession(session);
     res.json(result);
@@ -150,6 +179,7 @@ app.post(
     const session = getSession(sessionId);
     if (!session || !session.profile)
       return res.status(400).json({ error: "先にヒヤリングを完了してください" });
+    if (!requireUnlock(req, res)) return;
 
     const result = await generateX(session.profile, theme, session.transcript);
     session.drafts.x = result;
@@ -168,6 +198,7 @@ app.post(
     const session = getSession(sessionId);
     if (!session || !session.profile)
       return res.status(400).json({ error: "先にヒヤリングを完了してください" });
+    if (!requireUnlock(req, res)) return;
 
     const note = await generateNote(session.profile, theme, session.transcript);
     session.drafts.note = note;
@@ -183,6 +214,7 @@ function generationRoute(draftKey, generator) {
     const session = getSession(sessionId);
     if (!session || !session.profile)
       return res.status(400).json({ error: "先にヒヤリングを完了してください" });
+    if (!requireUnlock(req, res)) return;
     const result = await generator(session.profile, theme, session.transcript);
     session.drafts[draftKey] = result;
     saveSession(session);
