@@ -119,10 +119,24 @@ export async function interviewTurn(transcript, userAnswer) {
   }
 
   // 会話は自然な文章で受け取り、締めサインだけを内部マーカーで判定（壊れにくい）
+  // モデルが英語の役割ラベルや区切り記号を書き始めたら、そこで生成を止める
   const text = await complete({
     system: INTERVIEWER_SYSTEM,
     messages,
     maxTokens: 900,
+    stopSequences: [
+      "\nHuman:",
+      "\nAssistant:",
+      "\nUser:",
+      "\nSystem:",
+      "\n\nHuman",
+      "\n\nUser",
+      "\n\nAssistant",
+      "Human:",
+      "Assistant:",
+      "User:",
+      "HUMAN_CONVERSATION_END",
+    ],
   });
 
   const done = DONE_MARK.test(text);

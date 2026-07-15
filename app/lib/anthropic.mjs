@@ -24,12 +24,13 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
  * @param {number} [opts.maxTokens=4096]
  * @returns {Promise<string>} 生成テキスト
  */
-export async function complete({ system, messages, maxTokens = 4096 }) {
+export async function complete({ system, messages, maxTokens = 4096, stopSequences }) {
   const res = await anthropic.messages.create({
     model: MODEL,
     max_tokens: maxTokens,
     system,
     messages,
+    ...(stopSequences && stopSequences.length ? { stop_sequences: stopSequences } : {}),
   });
 
   // text ブロックだけを連結して返す
