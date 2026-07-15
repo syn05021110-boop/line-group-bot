@@ -1043,10 +1043,16 @@ body > * {
   margin: 6px 0;
   font-size: 0.94rem;
 }
+.upgrade-contact {
+  margin: 14px 0 10px;
+  font-size: 0.86rem;
+  color: var(--text);
+  font-weight: 600;
+}
 .upgrade-cta {
   display: block;
   text-align: center;
-  margin: 16px 0 6px;
+  margin: 8px 0;
   text-decoration: none;
 }
 .unlock-form {
