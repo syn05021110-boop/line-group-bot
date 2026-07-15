@@ -1,20 +1,19 @@
 /**
- * 副業「下書きツール」MVP サーバー
+ * 副業「下書きツール」MVP サーバー（ステートレス版）
  *
  * フロー:
  *   1. ヒヤリング開始 → 深掘りインタビュー（Claude が1問ずつ）
  *   2. 十分に集まったら強み棚卸しを自動生成
- *   3. 棚卸しをもとに Threads 投稿文 / note 下書きを生成
- *   4. 下書きはコピー / ワンタップ投稿補助（投稿自体は本人）
+ *   3. 棚卸しをもとに 各SNS/note の下書きを生成
  *
- * ※ 決済・認証・自動投稿は含まない（Phase2以降）。
+ * ※ 会話状態(transcript)と棚卸し(profile)は「画面側」が保持し、毎回サーバーに渡す。
+ *    サーバーはセッションを保存しない＝再デプロイ/スリープ復帰で消えない。
  */
 
 import express from "express";
 import { join, dirname } from "path";
 import dotenv from "dotenv";
 
-import { createSession, getSession, saveSession } from "./lib/store.mjs";
 import { interviewTurn, synthesizeStrengths } from "./lib/hearing.mjs";
 import {
   generateThreads,
@@ -31,7 +30,7 @@ const PROJECT_ROOT = dirname(import.meta.url.replace("file://", ""));
 dotenv.config({ path: join(PROJECT_ROOT, ".env") });
 
 const app = express();
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "2mb" }));
 app.use(express.static(join(PROJECT_ROOT, "public")));
 
 // 共通エラーラッパ
@@ -73,170 +72,113 @@ app.post("/api/unlock", (req, res) => {
   return res.status(401).json({ error: "コードが違います" });
 });
 
+/** 受け取った transcript を安全な形に整える */
+function sanitizeTranscript(input) {
+  if (!Array.isArray(input)) return [];
+  return input
+    .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
+    .map((m) => ({ role: m.role, content: m.content }))
+    .slice(-40); // 念のため上限
+}
+
 /**
- * ヒヤリング開始：セッションを作り、最初の質問を返す
+ * ヒヤリング開始：最初の質問を返す（transcript も返す）
  */
 app.post(
   "/api/hearing/start",
   wrap(async (req, res) => {
-    const session = createSession();
-    const turn = await interviewTurn(session.transcript, null);
-
-    session.transcript.push({ role: "assistant", content: turn.reply });
-    session.turns = turn.progress;
-    saveSession(session);
-
-    res.json({
-      sessionId: session.id,
-      reply: turn.reply,
-      done: turn.done,
-      progress: turn.progress,
-    });
+    const turn = await interviewTurn([], null);
+    const transcript = [{ role: "assistant", content: turn.reply }];
+    res.json({ transcript, reply: turn.reply, done: turn.done, progress: turn.progress });
   })
 );
 
 /**
- * ヒヤリング回答：ユーザーの回答を受け、次の質問 or 締め（＋棚卸し）を返す
+ * ヒヤリング回答：画面から transcript + 今回の回答を受け取り、次の質問 or 締め(+棚卸し)を返す
  */
 app.post(
   "/api/hearing/message",
   wrap(async (req, res) => {
-    const { sessionId, answer } = req.body || {};
-    const session = getSession(sessionId);
-    if (!session) return res.status(404).json({ error: "セッションが見つかりません" });
+    const { transcript, answer } = req.body || {};
     if (!answer || !String(answer).trim())
       return res.status(400).json({ error: "回答が空です" });
 
-    session.transcript.push({ role: "user", content: String(answer).trim() });
+    const t = sanitizeTranscript(transcript);
+    t.push({ role: "user", content: String(answer).trim() });
 
-    const turn = await interviewTurn(session.transcript, null);
-    session.transcript.push({ role: "assistant", content: turn.reply });
-    session.turns = turn.progress;
+    const turn = await interviewTurn(t, null);
+    t.push({ role: "assistant", content: turn.reply });
 
     let profile = null;
     if (turn.done) {
-      // インタビュー終了 → 強み棚卸しを生成
-      profile = await synthesizeStrengths(session.transcript);
-      session.profile = profile;
+      profile = await synthesizeStrengths(t);
     }
-    saveSession(session);
 
-    res.json({
-      reply: turn.reply,
-      done: turn.done,
-      progress: turn.progress,
-      profile,
-    });
+    res.json({ transcript: t, reply: turn.reply, done: turn.done, progress: turn.progress, profile });
   })
 );
 
 /**
- * 手動で棚卸しを（再）生成したい場合
+ * 強み棚卸しの（再）生成：transcript から作る
  */
 app.post(
   "/api/strengths",
   wrap(async (req, res) => {
-    const { sessionId } = req.body || {};
-    const session = getSession(sessionId);
-    if (!session) return res.status(404).json({ error: "セッションが見つかりません" });
-
-    const profile = await synthesizeStrengths(session.transcript);
-    session.profile = profile;
-    saveSession(session);
+    const t = sanitizeTranscript(req.body && req.body.transcript);
+    if (!t.length) return res.status(400).json({ error: "先にヒヤリングを行ってください" });
+    const profile = await synthesizeStrengths(t);
     res.json({ profile });
   })
 );
 
-/**
- * Threads 投稿文を生成
- */
+/* ===== 生成系エンドポイント（画面から profile + transcript + theme を受け取る） ===== */
+
+function readGenInput(req) {
+  const { profile, transcript, theme } = req.body || {};
+  return { profile, transcript: sanitizeTranscript(transcript), theme: theme || "" };
+}
+
+// Threads（無料・味見3本）
 app.post(
   "/api/generate/threads",
   wrap(async (req, res) => {
-    const { sessionId, theme } = req.body || {};
-    const session = getSession(sessionId);
-    if (!session || !session.profile)
-      return res.status(400).json({ error: "先にヒヤリングを完了してください" });
-
-    const result = await generateThreads(session.profile, theme, session.transcript);
-    // 無料は味見として3投稿まで。解放済みは全件。
+    const { profile, transcript, theme } = readGenInput(req);
+    if (!profile) return res.status(400).json({ error: "先にヒヤリングを完了してください" });
+    const result = await generateThreads(profile, theme, transcript);
     if (!isUnlocked(req) && Array.isArray(result.posts)) {
       result.posts = result.posts.slice(0, 3);
     }
-    session.drafts.threads = result;
-    saveSession(session);
     res.json(result);
   })
 );
 
-/**
- * X（旧Twitter）投稿文を生成
- */
-app.post(
-  "/api/generate/x",
-  wrap(async (req, res) => {
-    const { sessionId, theme } = req.body || {};
-    const session = getSession(sessionId);
-    if (!session || !session.profile)
-      return res.status(400).json({ error: "先にヒヤリングを完了してください" });
-    if (!requireUnlock(req, res)) return;
-
-    const result = await generateX(session.profile, theme, session.transcript);
-    session.drafts.x = result;
-    saveSession(session);
-    res.json(result);
-  })
-);
-
-/**
- * note 下書きを生成
- */
-app.post(
-  "/api/generate/note",
-  wrap(async (req, res) => {
-    const { sessionId, theme } = req.body || {};
-    const session = getSession(sessionId);
-    if (!session || !session.profile)
-      return res.status(400).json({ error: "先にヒヤリングを完了してください" });
-    if (!requireUnlock(req, res)) return;
-
-    const note = await generateNote(session.profile, theme, session.transcript);
-    session.drafts.note = note;
-    saveSession(session);
-    res.json({ note });
-  })
-);
-
-// 生成系エンドポイントの共通ファクトリ（profile必須・結果をdraftsに保存）
-function generationRoute(draftKey, generator) {
+// 有料の生成系（要 UNLOCK）
+function lockedRoute(generator) {
   return wrap(async (req, res) => {
-    const { sessionId, theme } = req.body || {};
-    const session = getSession(sessionId);
-    if (!session || !session.profile)
-      return res.status(400).json({ error: "先にヒヤリングを完了してください" });
+    const { profile, transcript, theme } = readGenInput(req);
+    if (!profile) return res.status(400).json({ error: "先にヒヤリングを完了してください" });
     if (!requireUnlock(req, res)) return;
-    const result = await generator(session.profile, theme, session.transcript);
-    session.drafts[draftKey] = result;
-    saveSession(session);
+    const result = await generator(profile, theme, transcript);
     res.json(result);
   });
 }
 
-app.post("/api/generate/instagram", generationRoute("instagram", generateInstagram));
-app.post("/api/generate/tiktok", generationRoute("tiktok", generateTikTok));
-app.post("/api/generate/calendar", generationRoute("calendar", generateCalendar));
-app.post("/api/generate/paidnote", generationRoute("paidnote", generatePaidNote));
-app.post("/api/generate/profiles", generationRoute("profiles", generateProfiles));
+app.post("/api/generate/x", lockedRoute(generateX));
+app.post("/api/generate/instagram", lockedRoute(generateInstagram));
+app.post("/api/generate/tiktok", lockedRoute(generateTikTok));
+app.post("/api/generate/calendar", lockedRoute(generateCalendar));
+app.post("/api/generate/paidnote", lockedRoute(generatePaidNote));
+app.post("/api/generate/profiles", lockedRoute(generateProfiles));
 
-/**
- * セッションの現在状態を取得（リロード復帰用）
- */
-app.get(
-  "/api/session/:id",
+// note は {note} でラップして返す（フロント互換）
+app.post(
+  "/api/generate/note",
   wrap(async (req, res) => {
-    const session = getSession(req.params.id);
-    if (!session) return res.status(404).json({ error: "セッションが見つかりません" });
-    res.json({ session });
+    const { profile, transcript, theme } = readGenInput(req);
+    if (!profile) return res.status(400).json({ error: "先にヒヤリングを完了してください" });
+    if (!requireUnlock(req, res)) return;
+    const note = await generateNote(profile, theme, transcript);
+    res.json({ note });
   })
 );
 
@@ -244,4 +186,5 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`fukugyo-draft-app running on http://localhost:${PORT}`);
   console.log(`ANTHROPIC_API_KEY: ${process.env.ANTHROPIC_API_KEY ? "設定済み" : "(未設定)"}`);
+  console.log(`UNLOCK_CODE: ${UNLOCK_CODE ? "設定済み" : "(未設定 — 有料機能はロックされたまま)"}`);
 });

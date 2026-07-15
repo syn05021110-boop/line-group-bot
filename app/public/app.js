@@ -1,8 +1,8 @@
 /* 副業ドラフト — フロントエンド */
 
 const state = {
-  sessionId: null,
-  profile: null,
+  transcript: [], // 会話履歴（画面側で保持し毎回サーバーへ渡す）
+  profile: null, // 強み棚卸し
 };
 
 /* ---------- DOM ---------- */
@@ -150,7 +150,7 @@ els.startBtn.addEventListener("click", async () => {
   const typing = showTyping();
   try {
     const data = await api("/api/hearing/start");
-    state.sessionId = data.sessionId;
+    state.transcript = data.transcript || [{ role: "assistant", content: data.reply }];
     typing.remove();
     addMessage(data.reply, "ai");
     els.answerInput.focus();
@@ -173,9 +173,10 @@ els.answerForm.addEventListener("submit", async (e) => {
 
   try {
     const data = await api("/api/hearing/message", {
-      sessionId: state.sessionId,
+      transcript: state.transcript,
       answer,
     });
+    if (Array.isArray(data.transcript)) state.transcript = data.transcript;
     typing.remove();
     addMessage(data.reply, "ai");
 
@@ -256,7 +257,8 @@ els.genThreadsBtn.addEventListener("click", async () => {
   els.threadsOut.innerHTML = loading("Threads 投稿文を生成中…");
   try {
     const data = await api("/api/generate/threads", {
-      sessionId: state.sessionId,
+      profile: state.profile,
+      transcript: state.transcript,
       theme,
     });
     renderThreads(data);
@@ -276,7 +278,11 @@ els.genXBtn.addEventListener("click", async () => {
   els.genXBtn.disabled = true;
   els.xOut.innerHTML = loading("X 投稿文を生成中…");
   try {
-    const data = await api("/api/generate/x", { sessionId: state.sessionId, theme });
+    const data = await api("/api/generate/x", {
+      profile: state.profile,
+      transcript: state.transcript,
+      theme,
+    });
     renderX(data);
   } catch (err) {
     els.xOut.innerHTML = `<p class="label">エラー: ${esc(err.message)}</p>`;
@@ -295,7 +301,8 @@ els.genNoteBtn.addEventListener("click", async () => {
   els.noteOut.innerHTML = loading("note 下書きを生成中…（少し時間がかかります）");
   try {
     const data = await api("/api/generate/note", {
-      sessionId: state.sessionId,
+      profile: state.profile,
+      transcript: state.transcript,
       theme,
     });
     renderNote(data.note);
@@ -317,7 +324,11 @@ function wireGen(btn, outEl, path, label, renderFn) {
     btn.disabled = true;
     outEl.innerHTML = loading(label + "を生成中…");
     try {
-      const data = await api(path, { sessionId: state.sessionId, theme });
+      const data = await api(path, {
+        profile: state.profile,
+        transcript: state.transcript,
+        theme,
+      });
       renderFn(data);
     } catch (err) {
       outEl.innerHTML = `<p class="label">エラー: ${esc(err.message)}</p>`;
