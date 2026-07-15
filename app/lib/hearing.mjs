@@ -85,15 +85,22 @@ const SYNTHESIS_SYSTEM = `あなたは、単価30万円で個人の副業プロ�
  * @returns {Promise<{done:boolean, reply:string, progress:number}>}
  */
 export async function interviewTurn(transcript, userAnswer) {
-  const messages = [...transcript];
+  const history = [...transcript];
   if (userAnswer != null) {
-    messages.push({ role: "user", content: userAnswer });
-  } else if (messages.length === 0) {
-    // 初回キック：最初の質問を出させる
-    messages.push({
-      role: "user",
-      content: "（インタビューを始めてください。まずは温かい挨拶と、最初の1問をお願いします。）",
-    });
+    history.push({ role: "user", content: userAnswer });
+  }
+
+  // APIに渡す配列は必ず「ユーザー発話始まり」で整える。
+  // 先頭がAIの挨拶(assistant)のままだとモデルが会話の区切りを誤解し、
+  // 区切り記号(例: HUMAN_CONVERSATION_END)を出力してしまうことがあるため。
+  const KICKOFF = "（インタビューを始めてください。まずは温かい挨拶と、最初の1問をお願いします。）";
+  let messages;
+  if (history.length === 0) {
+    messages = [{ role: "user", content: KICKOFF }];
+  } else if (history[0].role === "assistant") {
+    messages = [{ role: "user", content: KICKOFF }, ...history];
+  } else {
+    messages = history;
   }
 
   // 会話は自然な文章で受け取り、締めサインだけを内部マーカーで判定（壊れにくい）
@@ -104,8 +111,12 @@ export async function interviewTurn(transcript, userAnswer) {
   });
 
   const done = DONE_MARK.test(text);
-  const reply = text.replace(DONE_MARK, "").trim();
-  const progress = messages.filter((m) => m.role === "assistant").length + 1;
+  let reply = text.replace(DONE_MARK, "");
+  // 念のため、モデルが稀に漏らす会話区切りマーカーを除去する
+  reply = reply
+    .replace(/\b(?:HUMAN|ASSISTANT|AI|USER|SYSTEM)?[_ ]?CONVERSATION[_ ]?END\b/gi, "")
+    .trim();
+  const progress = history.filter((m) => m.role === "assistant").length + 1;
 
   return { done, reply, progress };
 }
