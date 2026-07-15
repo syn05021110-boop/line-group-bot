@@ -195,8 +195,17 @@ els.answerForm.addEventListener("submit", async (e) => {
 });
 
 // Enterで送信 / Shift+Enterで改行
+// ただし日本語変換(IME)中のEnterは"変換確定"なので送信しない
+let imeComposing = false;
+els.answerInput.addEventListener("compositionstart", () => {
+  imeComposing = true;
+});
+els.answerInput.addEventListener("compositionend", () => {
+  imeComposing = false;
+});
 els.answerInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
+  const composing = imeComposing || e.isComposing || e.keyCode === 229;
+  if (e.key === "Enter" && !e.shiftKey && !composing) {
     e.preventDefault();
     els.answerForm.requestSubmit();
   }
