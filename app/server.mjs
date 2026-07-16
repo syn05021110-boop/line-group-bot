@@ -50,6 +50,8 @@ app.get("/api/health", (req, res) => {
 
 // 管理用：コード発行ページ
 app.get("/admin", (req, res) => res.sendFile(join(PROJECT_ROOT, "public", "admin.html")));
+// 決済成功ページ（Stripeの支払い後の戻り先）
+app.get("/success", (req, res) => res.sendFile(join(PROJECT_ROOT, "public", "success.html")));
 
 /* ===== 有料解放（期限つき個別コード方式） =====
  * ・買い切り = 無期限の署名コード
@@ -117,6 +119,43 @@ app.post("/api/unlock", (req, res) => {
   if (tokenValid(code)) return res.json({ ok: true, token: code });
   return res.status(401).json({ error: "コードが違うか、有効期限が切れています" });
 });
+
+// Stripe決済完了 → 自動でコードを発行（成功ページから呼ばれる）
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
+
+app.post(
+  "/api/stripe/redeem",
+  wrap(async (req, res) => {
+    const sessionId = req.body && req.body.session_id ? String(req.body.session_id) : "";
+    if (!STRIPE_SECRET_KEY)
+      return res.status(400).json({ error: "STRIPE_SECRET_KEY が未設定です（Renderで設定してください）" });
+    if (!/^cs_[A-Za-z0-9_]+$/.test(sessionId))
+      return res.status(400).json({ error: "決済セッションが正しくありません" });
+
+    // Stripeに問い合わせて支払い状況を確認
+    const r = await fetch(
+      `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}`,
+      { headers: { Authorization: `Bearer ${STRIPE_SECRET_KEY}` } }
+    );
+    const s = await r.json();
+    if (!r.ok) return res.status(400).json({ error: "Stripeの照会に失敗しました" });
+
+    const paid = s.payment_status === "paid" || s.payment_status === "no_payment_required";
+    if (!paid) return res.status(402).json({ error: "お支払いがまだ確認できていません" });
+
+    // subscription=月額（31日）/ payment=買い切り（無期限）
+    const monthly = s.mode === "subscription";
+    // 期限は「支払い日」基準にして、ページ再訪問で不正に延長されないようにする
+    const created = Number(s.created) || Math.floor(Date.now() / 1000);
+    const exp = monthly ? created + 31 * 86400 : 0;
+    const code = mintCode(exp);
+    const expiresAt =
+      exp === 0
+        ? "無期限（買い切り）"
+        : new Date(exp * 1000).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+    res.json({ code, expiresAt, plan: monthly ? "月額プラン" : "買い切りプラン" });
+  })
+);
 
 // 管理者がコードを発行（/admin ページから）
 app.post("/api/admin/issue", (req, res) => {

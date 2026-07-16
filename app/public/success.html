@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>お支払い完了｜副業ドラフト</title>
+    <style>
+      :root {
+        --grad: linear-gradient(120deg, #6366f1, #a855f7, #ec4899);
+        --bg: #08080f;
+        --surface: rgba(255, 255, 255, 0.05);
+        --border: rgba(255, 255, 255, 0.12);
+        --text: #f4f3fb;
+        --muted: #9a99b4;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: var(--bg); color: var(--text);
+        font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        line-height: 1.7; min-height: 100vh; display: grid; place-items: center; padding: 24px;
+      }
+      .card {
+        width: 100%; max-width: 460px; background: var(--surface);
+        border: 1px solid var(--border); border-radius: 20px; padding: 28px 24px; text-align: center;
+      }
+      h1 { font-size: 1.4rem; margin: 10px 0 6px; }
+      .muted { color: var(--muted); font-size: 0.9rem; }
+      .spinner {
+        width: 34px; height: 34px; border-radius: 50%;
+        border: 3px solid rgba(255,255,255,0.15); border-top-color: #a855f7;
+        animation: spin 0.8s linear infinite; margin: 10px auto;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .code-box {
+        background: rgba(0,0,0,0.4); border: 1px solid #a855f7; border-radius: 12px;
+        padding: 14px; font-size: 0.9rem; word-break: break-all; margin: 14px 0 6px;
+      }
+      .btn {
+        display: inline-block; width: 100%; border: none; border-radius: 999px; padding: 15px;
+        font-size: 1rem; font-weight: 800; background: var(--grad); color: #fff; cursor: pointer;
+        text-decoration: none; margin-top: 12px;
+      }
+      .link { color: #c9c6ff; font-size: 0.85rem; }
+      .hidden { display: none; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div id="loading">
+        <div class="spinner"></div>
+        <h1>お支払いを確認しています…</h1>
+        <p class="muted">少々お待ちください</p>
+      </div>
+
+      <div id="done" class="hidden">
+        <div style="font-size:2.4rem">🎉</div>
+        <h1>解放が完了しました！</h1>
+        <p class="muted" id="planText"></p>
+        <p class="muted">全機能が使えるようになりました。<br />下のボタンからアプリへどうぞ。</p>
+        <a class="btn" href="/">アプリを開く（解放済み）</a>
+        <p class="muted" style="margin-top:16px">※このページのコードは自動で適用済みです。別の端末で使う場合は、下のコードをアプリの「解放コード」欄に入力してください。</p>
+        <div class="code-box" id="codeBox"></div>
+        <p class="muted" id="expText"></p>
+      </div>
+
+      <div id="fail" class="hidden">
+        <div style="font-size:2.4rem">😢</div>
+        <h1>確認できませんでした</h1>
+        <p class="muted" id="failMsg"></p>
+        <p class="muted">お手数ですが、公式LINEにご連絡ください。コードをお送りします。</p>
+        <a class="btn" href="https://lin.ee/QEeYaCS3" target="_blank" rel="noopener">LINEで連絡する</a>
+        <p style="margin-top:14px"><a class="link" href="/">アプリに戻る</a></p>
+      </div>
+    </div>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const params = new URLSearchParams(location.search);
+      const sessionId = params.get("session_id");
+
+      function show(id) {
+        ["loading", "done", "fail"].forEach((x) => $(x).classList.toggle("hidden", x !== id));
+      }
+
+      async function run() {
+        if (!sessionId) {
+          $("failMsg").textContent = "決済情報が見つかりませんでした。";
+          return show("fail");
+        }
+        try {
+          const res = await fetch("/api/stripe/redeem", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "確認に失敗しました");
+          // コードを保存＝アプリが自動で解放される
+          localStorage.setItem("unlockToken", data.code);
+          $("planText").textContent = data.plan + " / 有効期限：" + data.expiresAt;
+          $("codeBox").textContent = data.code;
+          $("expText").textContent = "有効期限：" + data.expiresAt;
+          show("done");
+        } catch (e) {
+          $("failMsg").textContent = e.message;
+          show("fail");
+        }
+      }
+      run();
+    </script>
+  </body>
+</html>
