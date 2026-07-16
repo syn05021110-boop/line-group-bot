@@ -1053,14 +1053,34 @@ body > * {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 12px 14px;
+  padding: 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);
+  text-decoration: none;
+  color: var(--text);
+  transition: transform 0.1s, border-color 0.2s, box-shadow 0.2s;
+}
+.plan:hover {
+  transform: translateY(-2px);
+  border-color: var(--violet);
+}
+.plan:active {
+  transform: translateY(0);
 }
 .plan-featured {
   border-color: var(--violet);
   box-shadow: var(--glow);
+}
+.plan-buy {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--grad);
+  border-radius: 999px;
+  padding: 7px 10px;
+  text-align: center;
 }
 .plan-name {
   font-size: 0.82rem;
