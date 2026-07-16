@@ -4,12 +4,12 @@ const { chromium } = pkg;
 
 const files = readdirSync('marketing/notes').filter(f => /^note-\d+\.md$/.test(f)).sort();
 
-// タイトルからカテゴリを推定（note一覧での識別性UP）
+// タイトルからカテゴリ（Apple風の静かなラベル）を推定
 function category(title) {
-  if (/Threads/i.test(title)) return 'Threads攻略';
+  if (/Threads/i.test(title)) return 'Threads';
   if (/Instagram/i.test(title)) return 'Instagram';
-  if (/(^|[^A-Za-z])X(で| )/.test(title)) return 'X（旧Twitter）';
-  if (/note/i.test(title)) return 'note術';
+  if (/(^|[^A-Za-z])X(で| )/.test(title)) return 'X';
+  if (/note/i.test(title)) return 'note';
   if (/AI/.test(title)) return 'AI活用';
   if (/棚卸し|強み|言語化/.test(title)) return '強み棚卸し';
   if (/続|やめる|仕組み|時間|設計/.test(title)) return '継続の技術';
@@ -17,44 +17,33 @@ function category(title) {
   return '副業の始め方';
 }
 
+// Apple風：真っ黒・中央寄せ・巨大タイポ・余白・上品な一色アクセント
 const template = (title, num, cat) => `<!doctype html><html><head><meta charset="utf-8"><style>
 *{margin:0;box-sizing:border-box}
-body{width:1280px;height:670px;font-family:'Hiragino Sans','Noto Sans JP',sans-serif;overflow:hidden}
-.card{position:relative;width:1280px;height:670px;background:#07070d;color:#fff;padding:66px 76px;
- display:flex;flex-direction:column;justify-content:center;overflow:hidden}
-/* 奥行きのあるグラデーション光源 */
+body{width:1280px;height:670px;overflow:hidden}
+.card{position:relative;width:1280px;height:670px;background:#000;color:#f5f5f7;
+ font-family:-apple-system,'SF Pro Display','Helvetica Neue','Hiragino Sans','Noto Sans JP',sans-serif;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ text-align:center;padding:96px 110px;overflow:hidden}
+/* ごく控えめな単一グロー（Appleキーノート風） */
 .card::before{content:"";position:absolute;inset:0;background:
- radial-gradient(38% 55% at 8% 0%,rgba(99,102,241,.55),transparent 60%),
- radial-gradient(42% 50% at 102% 12%,rgba(236,72,153,.40),transparent 58%),
- radial-gradient(46% 52% at 88% 108%,rgba(168,85,247,.42),transparent 60%),
- radial-gradient(60% 60% at 50% 130%,rgba(56,189,248,.14),transparent 60%);}
-/* 細かいグリッド */
-.card::after{content:"";position:absolute;inset:0;opacity:.5;background-image:
- linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
- linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
- background-size:52px 52px;mask-image:radial-gradient(75% 75% at 50% 45%,#000 55%,transparent 100%)}
-.inner{position:relative;z-index:2}
-.top{position:absolute;top:56px;left:76px;right:76px;z-index:2;display:flex;align-items:center;justify-content:space-between}
-.badge{display:inline-flex;align-items:center;gap:12px;font-size:25px;font-weight:800;color:#d7d3ff;letter-spacing:.02em}
-.dot{width:15px;height:15px;border-radius:50%;background:linear-gradient(120deg,#6366f1,#a855f7,#ec4899);box-shadow:0 0 18px rgba(168,85,247,.8)}
-.cat{font-size:23px;font-weight:800;color:#fff;padding:11px 22px;border-radius:999px;
- background:linear-gradient(120deg,rgba(99,102,241,.28),rgba(236,72,153,.28));
- border:1.5px solid rgba(255,255,255,.28);backdrop-filter:blur(4px);letter-spacing:.03em}
-.title{font-size:60px;font-weight:800;line-height:1.42;letter-spacing:.005em;max-width:1000px;
- line-break:strict;word-break:normal;
- border-left:12px solid;border-image:linear-gradient(180deg,#6366f1,#a855f7,#ec4899) 1;padding-left:36px;
- text-shadow:0 2px 30px rgba(0,0,0,.35)}
-.foot{position:absolute;left:76px;bottom:50px;z-index:2;font-size:27px;color:#b9b7d0;font-weight:700;
- display:flex;align-items:center;gap:12px}
-.arrow{color:#c9a2ff}
-.no{position:absolute;right:64px;bottom:30px;z-index:2;font-size:150px;font-weight:900;line-height:1;
- color:rgba(255,255,255,.06);letter-spacing:-.04em}
+ radial-gradient(58% 46% at 50% 40%,rgba(118,92,255,.16),transparent 72%);}
+.card::after{content:"";position:absolute;left:0;right:0;bottom:0;height:42%;
+ background:radial-gradient(80% 100% at 50% 100%,rgba(236,72,153,.08),transparent 70%);}
+.eyebrow{position:relative;z-index:2;font-size:27px;font-weight:600;letter-spacing:.14em;
+ margin-bottom:38px;text-transform:none;
+ background:linear-gradient(90deg,#a9b6ff,#f0a6ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.title{position:relative;z-index:2;font-size:70px;font-weight:700;line-height:1.34;
+ letter-spacing:-.02em;max-width:1060px;color:#f5f5f7}
+.brand{position:absolute;z-index:2;bottom:52px;left:0;right:0;text-align:center;
+ font-size:24px;font-weight:600;letter-spacing:.02em;color:#6e6e78}
+.idx{position:absolute;z-index:2;bottom:52px;right:64px;font-size:22px;font-weight:600;
+ letter-spacing:.06em;color:#3a3a42}
 </style></head><body><div class="card">
-<div class="top"><div class="badge"><span class="dot"></span>副業ドラフト ・ @shachiku_mao</div>
-<div class="cat">${cat}</div></div>
-<div class="inner"><div class="title">${title.replace(/</g, '&lt;')}</div></div>
-<div class="foot">AIがあなたの強みを引き出す下書きツール<span class="arrow">→</span></div>
-<div class="no">${String(num).padStart(2, '0')}</div>
+<div class="eyebrow">${cat}</div>
+<div class="title">${title.replace(/</g, '&lt;')}</div>
+<div class="brand">副業ドラフト</div>
+<div class="idx">${String(num).padStart(2, '0')} / 20</div>
 </div></body></html>`;
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
