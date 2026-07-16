@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>コード発行（管理）｜副業ドラフト</title>
+    <style>
+      :root {
+        --grad: linear-gradient(120deg, #6366f1, #a855f7, #ec4899);
+        --bg: #08080f;
+        --surface: rgba(255, 255, 255, 0.05);
+        --border: rgba(255, 255, 255, 0.12);
+        --text: #f4f3fb;
+        --muted: #9a99b4;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        line-height: 1.7;
+        padding: 24px 16px 60px;
+      }
+      .wrap { max-width: 520px; margin: 0 auto; }
+      h1 { font-size: 1.3rem; margin: 0 0 4px; }
+      .sub { color: var(--muted); font-size: 0.85rem; margin: 0 0 20px; }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 16px;
+      }
+      label { display: block; font-size: 0.85rem; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+      input, select {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 14px;
+        font: inherit;
+        background: rgba(0, 0, 0, 0.3);
+        color: var(--text);
+        margin-bottom: 14px;
+      }
+      .plans { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+      .plan-btn {
+        flex: 1;
+        min-width: 120px;
+        border: 1px solid var(--border);
+        background: rgba(0, 0, 0, 0.3);
+        color: var(--text);
+        border-radius: 12px;
+        padding: 12px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .plan-btn.active { border-color: transparent; background: var(--grad); }
+      .btn {
+        width: 100%;
+        border: none;
+        border-radius: 999px;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 800;
+        background: var(--grad);
+        color: #fff;
+        cursor: pointer;
+      }
+      .btn:disabled { opacity: 0.5; }
+      .result { display: none; }
+      .code-box {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid #a855f7;
+        border-radius: 12px;
+        padding: 14px;
+        font-size: 0.95rem;
+        word-break: break-all;
+        margin-bottom: 10px;
+      }
+      .exp { color: var(--muted); font-size: 0.85rem; margin-bottom: 12px; }
+      .copy-btn {
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 9px 16px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        margin-right: 8px;
+      }
+      .msg { font-size: 0.85rem; margin-top: 8px; min-height: 1.2em; }
+      .err { color: #fca5a5; }
+      .ok { color: #6ee7b7; }
+      textarea { width: 100%; min-height: 120px; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,0.3); color: var(--text); padding: 12px; font: inherit; margin-top: 10px; }
+      .note { color: var(--muted); font-size: 0.8rem; margin-top: 20px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>🔑 解放コード発行</h1>
+      <p class="sub">購入者に渡すコードを発行します（このページは自分だけが使う管理用です）</p>
+
+      <div class="card">
+        <label for="adminKey">管理パスワード（ADMIN_KEY）</label>
+        <input id="adminKey" type="password" placeholder="Renderで設定したADMIN_KEY" autocomplete="off" />
+
+        <label>プランを選ぶ</label>
+        <div class="plans">
+          <button type="button" class="plan-btn active" data-days="31">月額（31日）</button>
+          <button type="button" class="plan-btn" data-days="93">3ヶ月（93日）</button>
+          <button type="button" class="plan-btn" data-days="0">買い切り（無期限）</button>
+        </div>
+
+        <button class="btn" id="issueBtn">コードを発行</button>
+        <p class="msg" id="msg"></p>
+      </div>
+
+      <div class="card result" id="result">
+        <label>発行されたコード（タップでコピー）</label>
+        <div class="code-box" id="codeBox"></div>
+        <p class="exp" id="expText"></p>
+        <button class="copy-btn" id="copyCodeBtn">コードをコピー</button>
+        <button class="copy-btn" id="copyMsgBtn">案内文をコピー</button>
+        <textarea id="msgTemplate" readonly></textarea>
+      </div>
+
+      <p class="note">
+        使い方：入金確認 → プランを選ぶ → 「コードを発行」→ コード（または案内文）をコピーして、
+        LINE/DMで購入者に送る。月額は毎月このページで新しいコードを発行して送れば、解約した人は次のコードが来ないので自動的に使えなくなります。
+      </p>
+    </div>
+
+    <script>
+      let days = 31;
+      const $ = (id) => document.getElementById(id);
+
+      document.querySelectorAll(".plan-btn").forEach((b) => {
+        b.addEventListener("click", () => {
+          document.querySelectorAll(".plan-btn").forEach((x) => x.classList.remove("active"));
+          b.classList.add("active");
+          days = Number(b.dataset.days);
+        });
+      });
+
+      $("issueBtn").addEventListener("click", async () => {
+        const adminKey = $("adminKey").value.trim();
+        if (!adminKey) return setMsg("管理パスワードを入力してください", true);
+        $("issueBtn").disabled = true;
+        setMsg("発行中…", false);
+        try {
+          const res = await fetch("/api/admin/issue", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ adminKey, days }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "発行に失敗しました");
+          showResult(data.code, data.expiresAt);
+          setMsg("", false);
+        } catch (e) {
+          setMsg("❌ " + e.message, true);
+        } finally {
+          $("issueBtn").disabled = false;
+        }
+      });
+
+      function showResult(code, expiresAt) {
+        $("codeBox").textContent = code;
+        $("expText").textContent = "有効期限：" + expiresAt;
+        const tmpl =
+          "ご購入ありがとうございます！\n" +
+          "下記の解放コードを、アプリの「解放コードをお持ちの方」の欄に入力してください。\n\n" +
+          "コード：" + code + "\n\n" +
+          "アプリ：https://note-threadssf.onrender.com\n" +
+          "（有効期限：" + expiresAt + "）";
+        $("msgTemplate").value = tmpl;
+        $("result").style.display = "block";
+      }
+
+      $("copyCodeBtn").addEventListener("click", () => copy($("codeBox").textContent));
+      $("copyMsgBtn").addEventListener("click", () => copy($("msgTemplate").value));
+      $("codeBox").addEventListener("click", () => copy($("codeBox").textContent));
+
+      async function copy(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          setMsg("コピーしました", false);
+        } catch {
+          setMsg("コピーに失敗しました", true);
+        }
+      }
+
+      function setMsg(t, isErr) {
+        const el = $("msg");
+        el.textContent = t;
+        el.className = "msg " + (isErr ? "err" : "ok");
+      }
+    </script>
+  </body>
+</html>

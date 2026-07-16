@@ -11,6 +11,7 @@
  */
 
 import express from "express";
+import crypto from "crypto";
 import { join, dirname } from "path";
 import dotenv from "dotenv";
 
@@ -47,15 +48,60 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", model: "claude-opus-4-8" });
 });
 
-/* ===== 有料解放（アクセスコード方式） =====
- * UNLOCK_CODE 環境変数に設定した合言葉を、購入者に手動発行する。
- * 無料: ヒヤリング / 強み棚卸し / Threads(3投稿までの味見)
- * 有料: X / Instagram / TikTok / note / 有料note構成 / プロフィール一括 / カレンダー
+// 管理用：コード発行ページ
+app.get("/admin", (req, res) => res.sendFile(join(PROJECT_ROOT, "public", "admin.html")));
+
+/* ===== 有料解放（期限つき個別コード方式） =====
+ * ・買い切り = 無期限の署名コード
+ * ・月額     = 31日など期限つきの署名コード（期限切れで自動的に使えなくなる＝解約で止まる）
+ * ・発行は /admin ページから（ADMIN_KEY 認証）。DB不要・再起動に強い（署名検証のみ）。
+ *
+ * 環境変数:
+ *   UNLOCK_CODE   … 永久マスターコード（任意・自分のテスト用にも使える）
+ *   UNLOCK_SECRET … 署名鍵（未設定なら UNLOCK_CODE を流用）
+ *   ADMIN_KEY     … コード発行ページの管理パスワード（必須）
  */
 const UNLOCK_CODE = process.env.UNLOCK_CODE || "";
+const UNLOCK_SECRET = process.env.UNLOCK_SECRET || UNLOCK_CODE || "";
+const ADMIN_KEY = process.env.ADMIN_KEY || "";
+
+function signPayload(payload) {
+  return crypto.createHmac("sha256", UNLOCK_SECRET).update(payload).digest("base64url");
+}
+
+// exp: エポック秒（0 = 無期限）
+function mintCode(exp) {
+  const payload = Buffer.from(JSON.stringify({ exp })).toString("base64url");
+  return `${payload}.${signPayload(payload)}`;
+}
+
+function verifySignedCode(code) {
+  if (!UNLOCK_SECRET || typeof code !== "string" || !code.includes(".")) return false;
+  const [payload, sig] = code.split(".");
+  if (!payload || !sig) return false;
+  const expected = signPayload(payload);
+  const a = Buffer.from(sig);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return false;
+  let data;
+  try {
+    data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+  } catch {
+    return false;
+  }
+  const exp = Number(data.exp) || 0;
+  if (exp !== 0 && Date.now() / 1000 > exp) return false; // 期限切れ
+  return true;
+}
+
+function tokenValid(token) {
+  if (!token) return false;
+  if (UNLOCK_CODE && token === UNLOCK_CODE) return true; // 永久マスターコード
+  return verifySignedCode(token);
+}
 
 function isUnlocked(req) {
-  return UNLOCK_CODE !== "" && req.get("x-unlock-token") === UNLOCK_CODE;
+  return tokenValid(req.get("x-unlock-token"));
 }
 
 function requireUnlock(req, res) {
@@ -64,12 +110,32 @@ function requireUnlock(req, res) {
   return false;
 }
 
+// 顧客がコードを入力して解放
 app.post("/api/unlock", (req, res) => {
   const code = req.body && req.body.code ? String(req.body.code).trim() : "";
-  if (UNLOCK_CODE === "")
-    return res.status(400).json({ error: "解放コードが未設定です（運営にお問い合わせください）" });
-  if (code && code === UNLOCK_CODE) return res.json({ ok: true, token: UNLOCK_CODE });
-  return res.status(401).json({ error: "コードが違います" });
+  if (!code) return res.status(400).json({ error: "コードを入力してください" });
+  if (tokenValid(code)) return res.json({ ok: true, token: code });
+  return res.status(401).json({ error: "コードが違うか、有効期限が切れています" });
+});
+
+// 管理者がコードを発行（/admin ページから）
+app.post("/api/admin/issue", (req, res) => {
+  const { adminKey, days } = req.body || {};
+  if (!ADMIN_KEY)
+    return res.status(400).json({ error: "ADMIN_KEY が未設定です（Renderの環境変数に設定してください）" });
+  if (!UNLOCK_SECRET)
+    return res.status(400).json({ error: "UNLOCK_CODE（署名鍵）が未設定です" });
+  if (String(adminKey || "") !== ADMIN_KEY)
+    return res.status(401).json({ error: "管理パスワードが違います" });
+
+  const d = Number(days);
+  const exp = d && d > 0 ? Math.floor(Date.now() / 1000) + d * 86400 : 0;
+  const code = mintCode(exp);
+  const expiresAt =
+    exp === 0
+      ? "無期限（買い切り）"
+      : new Date(exp * 1000).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
+  res.json({ code, expiresAt });
 });
 
 /** 受け取った transcript を安全な形に整える */

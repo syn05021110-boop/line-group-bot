@@ -49,6 +49,12 @@ async function api(path, body) {
   if (!res.ok) {
     const err = new Error(data.error || "エラーが発生しました");
     err.locked = res.status === 402 || data.locked;
+    // コードが無効/期限切れ(402)なら、保存済みトークンを破棄してロックへ戻す＝解約で止まる挙動
+    if (err.locked) {
+      localStorage.removeItem("unlockToken");
+      if (typeof applyLockUI === "function") applyLockUI();
+      if (typeof openUpgrade === "function") openUpgrade();
+    }
     throw err;
   }
   return data;
