@@ -528,19 +528,19 @@ app.post(
 );
 
 // 手動テスト投稿：指定インデックスを今すぐ投稿（動作確認用）
-app.post(
-  "/api/threads/post-now",
-  wrap(async (req, res) => {
-    if (!cronAuthed(req)) return res.status(401).json({ error: "CRON_KEY が違います" });
-    if (!threadsConfigured())
-      return res.status(400).json({ error: "THREADS_ACCESS_TOKEN が未設定です" });
-    const i = Number(req.query.index ?? (req.body && req.body.index) ?? 0);
-    const text = THREADS_QUEUE[((i % THREADS_QUEUE.length) + THREADS_QUEUE.length) % THREADS_QUEUE.length];
-    if (!text) return res.status(400).json({ error: "素材が空です" });
-    const id = await publishThreadsPost(text);
-    res.json({ posted: true, index: i, id, preview: text.slice(0, 30) });
-  })
-);
+// ブラウザで開くだけで試せるよう GET/POST 両対応
+const postNowHandler = wrap(async (req, res) => {
+  if (!cronAuthed(req)) return res.status(401).json({ error: "CRON_KEY が違います" });
+  if (!threadsConfigured())
+    return res.status(400).json({ error: "THREADS_ACCESS_TOKEN が未設定です" });
+  const i = Number(req.query.index ?? (req.body && req.body.index) ?? 0);
+  const text = THREADS_QUEUE[((i % THREADS_QUEUE.length) + THREADS_QUEUE.length) % THREADS_QUEUE.length];
+  if (!text) return res.status(400).json({ error: "素材が空です" });
+  const id = await publishThreadsPost(text);
+  res.json({ posted: true, index: i, id, preview: text.slice(0, 30) });
+});
+app.get("/api/threads/post-now", postNowHandler);
+app.post("/api/threads/post-now", postNowHandler);
 
 // 進捗確認
 app.get("/api/threads/status", (req, res) => {
