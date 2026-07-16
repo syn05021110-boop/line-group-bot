@@ -31,8 +31,12 @@ const PROJECT_ROOT = dirname(import.meta.url.replace("file://", ""));
 dotenv.config({ path: join(PROJECT_ROOT, ".env") });
 
 const app = express();
-app.use(express.json({ limit: "2mb" }));
 app.use(express.static(join(PROJECT_ROOT, "public")));
+
+// Stripe webhook は署名検証のため「生ボディ」が必要。express.json より前に登録する。
+app.post("/api/stripe/webhook", express.raw({ type: "*/*" }), (req, res) => stripeWebhook(req, res));
+
+app.use(express.json({ limit: "2mb" }));
 
 // 共通エラーラッパ
 const wrap = (fn) => async (req, res) => {
@@ -122,6 +126,9 @@ app.post("/api/unlock", (req, res) => {
 
 // Stripe決済完了 → 自動でコードを発行（成功ページから呼ばれる）
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
+const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
+const MAIL_FROM = process.env.MAIL_FROM || "副業ドラフト <onboarding@resend.dev>";
 
 app.post(
   "/api/stripe/redeem",
@@ -176,6 +183,137 @@ app.post("/api/admin/issue", (req, res) => {
       : new Date(exp * 1000).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" });
   res.json({ code, expiresAt });
 });
+
+/* ===== Stripe Webhook（月額の翌月自動更新 → 新コードをメール送信） =====
+ * ・毎月の自動課金が成功すると Stripe が invoice.paid を送ってくる
+ * ・そのたびに 31日の新しいコードを発行し、購入者のメールに自動送信する
+ * ・購入者はメールのコードをアプリの「解放コード」欄に入れれば継続利用できる
+ *
+ * 環境変数:
+ *   STRIPE_WEBHOOK_SECRET … Stripeの「Webhook署名シークレット(whsec_...)」
+ *   RESEND_API_KEY        … Resend の APIキー（メール送信）
+ *   MAIL_FROM             … 送信元（例: 副業ドラフト <no-reply@あなたのドメイン>）
+ */
+
+// Resend でメール送信（依存追加なし・fetch のみ）
+async function sendCodeEmail(to, code, expiresAt) {
+  if (!RESEND_API_KEY) {
+    console.warn("[webhook] RESEND_API_KEY 未設定のためメール送信をスキップ:", to);
+    return false;
+  }
+  if (!to) {
+    console.warn("[webhook] 宛先メールが無いため送信スキップ");
+    return false;
+  }
+  const html = `
+    <div style="font-family:-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;line-height:1.8;color:#1a1a2e">
+      <h2 style="margin:0 0 8px">今月分の解放コードをお届けします</h2>
+      <p>副業ドラフトをご利用いただきありがとうございます。<br>月額プランの自動更新が完了しました。</p>
+      <p>下のコードをアプリの「解放コード」欄に貼り付けてください。</p>
+      <div style="background:#0f0f1a;color:#f4f3fb;border:1px solid #a855f7;border-radius:10px;padding:14px;font-size:14px;word-break:break-all;margin:12px 0">
+        ${code}
+      </div>
+      <p style="color:#555;font-size:13px">有効期限：${expiresAt}</p>
+      <p style="color:#555;font-size:13px">※コードは端末に一度入れれば有効期限まで再入力は不要です。次回の更新時にまた新しいコードをお送りします。</p>
+    </div>`;
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: MAIL_FROM,
+        to: [to],
+        subject: "【副業ドラフト】今月分の解放コード（自動更新）",
+        html,
+      }),
+    });
+    if (!r.ok) {
+      const t = await r.text();
+      console.error("[webhook] Resend送信失敗:", r.status, t);
+      return false;
+    }
+    console.log("[webhook] 解放コードをメール送信:", to);
+    return true;
+  } catch (e) {
+    console.error("[webhook] Resend例外:", e.message);
+    return false;
+  }
+}
+
+// Stripe署名の検証（built-in crypto のみ。Stripe SDK不要）
+function verifyStripeSignature(rawBody, sigHeader, secret) {
+  if (!sigHeader || !secret) return false;
+  const parts = Object.fromEntries(
+    sigHeader.split(",").map((kv) => kv.split("=").map((x) => x.trim()))
+  );
+  const t = parts.t;
+  const v1 = parts.v1;
+  if (!t || !v1) return false;
+  // タイムスタンプの許容範囲（±5分）でリプレイを防ぐ
+  const now = Math.floor(Date.now() / 1000);
+  if (Math.abs(now - Number(t)) > 300) return false;
+  const signed = `${t}.${rawBody.toString("utf8")}`;
+  const expected = crypto.createHmac("sha256", secret).update(signed).digest("hex");
+  const a = Buffer.from(v1);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+// Webhook本体（express.raw で生ボディを受け取る）
+async function stripeWebhook(req, res) {
+  try {
+    if (!STRIPE_WEBHOOK_SECRET) {
+      console.warn("[webhook] STRIPE_WEBHOOK_SECRET 未設定");
+      return res.status(400).send("webhook secret not set");
+    }
+    const raw = req.body; // Buffer（express.raw）
+    const sig = req.get("stripe-signature");
+    if (!verifyStripeSignature(raw, sig, STRIPE_WEBHOOK_SECRET)) {
+      console.warn("[webhook] 署名検証NG");
+      return res.status(400).send("invalid signature");
+    }
+
+    const event = JSON.parse(raw.toString("utf8"));
+
+    // 月額の課金成功（初回・更新の両方で飛ぶ）。更新分だけ拾えればよい。
+    if (event.type === "invoice.paid" || event.type === "invoice.payment_succeeded") {
+      const inv = event.data && event.data.object ? event.data.object : {};
+      // サブスクの請求のみ対象（買い切りは対象外）
+      const isSubscription =
+        inv.subscription || inv.billing_reason === "subscription_cycle" ||
+        inv.billing_reason === "subscription_create";
+      if (isSubscription) {
+        // 支払い日基準で31日の新コード
+        const base =
+          Number(inv.created) ||
+          (inv.status_transitions && Number(inv.status_transitions.paid_at)) ||
+          Math.floor(Date.now() / 1000);
+        const exp = base + 31 * 86400;
+        const code = mintCode(exp);
+        const expiresAt = new Date(exp * 1000).toLocaleString("ja-JP", {
+          timeZone: "Asia/Tokyo",
+        });
+        const email =
+          inv.customer_email ||
+          (inv.customer_details && inv.customer_details.email) ||
+          "";
+        await sendCodeEmail(email, code, expiresAt);
+        console.log(
+          `[webhook] ${event.type} 処理: reason=${inv.billing_reason} email=${email || "(なし)"}`
+        );
+      }
+    }
+
+    // 200を返せば Stripe は成功とみなす（再送されない）
+    res.json({ received: true });
+  } catch (err) {
+    console.error("[webhook] 例外:", err.message);
+    res.status(400).send("webhook error");
+  }
+}
 
 /** 受け取った transcript を安全な形に整える */
 function sanitizeTranscript(input) {
