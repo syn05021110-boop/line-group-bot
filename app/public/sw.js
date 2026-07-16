@@ -4,7 +4,7 @@
  * API(/api/*)や POST は常にネットワーク（キャッシュしない）。
  */
 
-const CACHE = "fukugyo-draft-v14"; // 更新時はここの数字を上げる
+const CACHE = "fukugyo-draft-v15"; // 更新時はここの数字を上げる
 const SHELL = [
   "/",
   "/index.html",
