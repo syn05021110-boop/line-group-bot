@@ -487,9 +487,8 @@ function cronAuthed(req) {
 }
 
 // 外部cronが定期的に叩く。スロットが進んでいれば1本投稿する。
-app.post(
-  "/api/threads/tick",
-  wrap(async (req, res) => {
+// GET/POST両対応（cronサービスの既定がGETでも動くように）
+const tickHandler = wrap(async (req, res) => {
     if (!cronAuthed(req)) return res.status(401).json({ error: "CRON_KEY が違います" });
     if (!threadsConfigured())
       return res.status(400).json({ error: "THREADS_ACCESS_TOKEN が未設定です" });
@@ -524,8 +523,9 @@ app.post(
       console.error("[threads] 投稿失敗 slot=" + slot, e.message);
       res.status(502).json({ error: e.message, slot });
     }
-  })
-);
+});
+app.get("/api/threads/tick", tickHandler);
+app.post("/api/threads/tick", tickHandler);
 
 // 手動テスト投稿：指定インデックスを今すぐ投稿（動作確認用）
 // ブラウザで開くだけで試せるよう GET/POST 両対応
