@@ -12,9 +12,11 @@
 
 import express from "express";
 import crypto from "crypto";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import dotenv from "dotenv";
 
+import { publishThreadsPost, refreshThreadsToken, threadsConfigured } from "./lib/threads.mjs";
 import { interviewTurn, synthesizeStrengths } from "./lib/hearing.mjs";
 import {
   generateThreads,
@@ -425,9 +427,154 @@ app.post(
   })
 );
 
+/* ===== Threads 自動投稿（拡散用・自分のアカウントへ） =====
+ * ・投稿素材は data/threads-queue.json（配列・上から順に投稿）
+ * ・外部cron（cron-job.org 等）が定期的に /api/threads/tick を叩く
+ * ・「開始日時 THREADS_START」からの経過で投稿インデックスを決める（DB不要）
+ * ・素材を全部出し切ったら先頭に戻ってループ（常時発信）
+ *
+ * 環境変数:
+ *   THREADS_ACCESS_TOKEN … Threads長期トークン（threads.mjs 参照）
+ *   THREADS_USER_ID       … 自分のユーザーID（未設定なら "me"）
+ *   CRON_KEY              … tickを叩くための合言葉（必須・第三者の乱用防止）
+ *   THREADS_START         … 投稿開始日時 ISO（例 2026-07-17T08:00:00+09:00）
+ *   THREADS_INTERVAL_HOURS… 投稿間隔（時間・既定8＝1日3本）
+ */
+const CRON_KEY = process.env.CRON_KEY || "";
+const THREADS_INTERVAL_HOURS = Number(process.env.THREADS_INTERVAL_HOURS) || 8;
+const THREADS_STATE_FILE = join(PROJECT_ROOT, "data", "threads-state.json");
+const postedThisProcess = new Set(); // 二重投稿ガード（同一プロセス内）
+
+let THREADS_QUEUE = [];
+try {
+  THREADS_QUEUE = JSON.parse(readFileSync(join(PROJECT_ROOT, "data", "threads-queue.json"), "utf8"));
+} catch {
+  THREADS_QUEUE = [];
+}
+
+function threadsStart() {
+  const env = process.env.THREADS_START;
+  const t = env ? Date.parse(env) : NaN;
+  return Number.isFinite(t) ? t : null;
+}
+
+function readThreadsState() {
+  try {
+    return JSON.parse(readFileSync(THREADS_STATE_FILE, "utf8"));
+  } catch {
+    return { lastPostedIndex: -1, start: null };
+  }
+}
+function writeThreadsState(state) {
+  try {
+    writeFileSync(THREADS_STATE_FILE, JSON.stringify(state, null, 2));
+  } catch (e) {
+    console.warn("[threads] 状態ファイル書き込み失敗:", e.message);
+  }
+}
+
+// 「今この瞬間に投稿すべきスロット番号」を経過時間から算出
+function currentSlotIndex(startMs) {
+  const intervalMs = THREADS_INTERVAL_HOURS * 3600 * 1000;
+  const elapsed = Date.now() - startMs;
+  if (elapsed < 0) return -1; // まだ開始前
+  return Math.floor(elapsed / intervalMs);
+}
+
+function cronAuthed(req) {
+  const key = req.query.key || (req.body && req.body.key) || req.get("x-cron-key") || "";
+  return CRON_KEY && String(key) === CRON_KEY;
+}
+
+// 外部cronが定期的に叩く。スロットが進んでいれば1本投稿する。
+app.post(
+  "/api/threads/tick",
+  wrap(async (req, res) => {
+    if (!cronAuthed(req)) return res.status(401).json({ error: "CRON_KEY が違います" });
+    if (!threadsConfigured())
+      return res.status(400).json({ error: "THREADS_ACCESS_TOKEN が未設定です" });
+    if (!THREADS_QUEUE.length)
+      return res.status(400).json({ error: "投稿素材(threads-queue.json)が空です" });
+
+    // 開始日時：env優先、なければ状態ファイル、なければ今回を開始点として保存
+    const state = readThreadsState();
+    let startMs = threadsStart();
+    if (startMs == null) {
+      startMs = state.start ? Number(state.start) : Date.now();
+      if (!state.start) writeThreadsState({ ...state, start: startMs });
+    }
+
+    const slot = currentSlotIndex(startMs);
+    if (slot < 0) return res.json({ skipped: true, reason: "開始前", startMs });
+
+    // すでにこのスロットは投稿済み → 何もしない（二重投稿防止）
+    if (postedThisProcess.has(slot) || slot <= (state.lastPostedIndex ?? -1)) {
+      return res.json({ skipped: true, reason: "投稿済みスロット", slot });
+    }
+
+    // 素材を使い切ったら先頭に戻ってループ
+    const text = THREADS_QUEUE[slot % THREADS_QUEUE.length];
+    try {
+      const id = await publishThreadsPost(text);
+      postedThisProcess.add(slot);
+      writeThreadsState({ lastPostedIndex: slot, start: startMs });
+      console.log(`[threads] 投稿成功 slot=${slot} id=${id}`);
+      res.json({ posted: true, slot, id, preview: text.slice(0, 30) });
+    } catch (e) {
+      console.error("[threads] 投稿失敗 slot=" + slot, e.message);
+      res.status(502).json({ error: e.message, slot });
+    }
+  })
+);
+
+// 手動テスト投稿：指定インデックスを今すぐ投稿（動作確認用）
+app.post(
+  "/api/threads/post-now",
+  wrap(async (req, res) => {
+    if (!cronAuthed(req)) return res.status(401).json({ error: "CRON_KEY が違います" });
+    if (!threadsConfigured())
+      return res.status(400).json({ error: "THREADS_ACCESS_TOKEN が未設定です" });
+    const i = Number(req.query.index ?? (req.body && req.body.index) ?? 0);
+    const text = THREADS_QUEUE[((i % THREADS_QUEUE.length) + THREADS_QUEUE.length) % THREADS_QUEUE.length];
+    if (!text) return res.status(400).json({ error: "素材が空です" });
+    const id = await publishThreadsPost(text);
+    res.json({ posted: true, index: i, id, preview: text.slice(0, 30) });
+  })
+);
+
+// 進捗確認
+app.get("/api/threads/status", (req, res) => {
+  if (!cronAuthed(req)) return res.status(401).json({ error: "CRON_KEY が違います" });
+  const state = readThreadsState();
+  const startMs = threadsStart() ?? (state.start ? Number(state.start) : null);
+  const slot = startMs != null ? currentSlotIndex(startMs) : null;
+  res.json({
+    configured: threadsConfigured(),
+    queueLength: THREADS_QUEUE.length,
+    intervalHours: THREADS_INTERVAL_HOURS,
+    start: startMs ? new Date(startMs).toISOString() : null,
+    currentSlot: slot,
+    lastPostedIndex: state.lastPostedIndex ?? -1,
+  });
+});
+
+// 長期トークンの更新（新トークンを返すので環境変数を差し替える）
+app.post(
+  "/api/threads/refresh",
+  wrap(async (req, res) => {
+    if (!cronAuthed(req)) return res.status(401).json({ error: "CRON_KEY が違います" });
+    const data = await refreshThreadsToken();
+    const days = data.expires_in ? Math.floor(data.expires_in / 86400) : null;
+    res.json({ ok: true, newToken: data.access_token, expiresInDays: days });
+  })
+);
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`fukugyo-draft-app running on http://localhost:${PORT}`);
   console.log(`ANTHROPIC_API_KEY: ${process.env.ANTHROPIC_API_KEY ? "設定済み" : "(未設定)"}`);
   console.log(`UNLOCK_CODE: ${UNLOCK_CODE ? "設定済み" : "(未設定 — 有料機能はロックされたまま)"}`);
+  console.log(
+    `Threads自動投稿: ${threadsConfigured() ? "設定済み" : "(未設定)"} / 素材${THREADS_QUEUE.length}本 / 間隔${THREADS_INTERVAL_HOURS}h`
+  );
 });
