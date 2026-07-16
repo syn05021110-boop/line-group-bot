@@ -481,6 +481,19 @@ function currentSlotIndex(startMs) {
   return Math.floor(elapsed / intervalMs);
 }
 
+// 静音時間帯（深夜など）は投稿しない。JSTの時刻で判定。
+// 既定は 1:00〜6:00（THREADS_QUIET_START/END で変更可。start==end で無効）
+const QUIET_START = Number(process.env.THREADS_QUIET_START ?? 1);
+const QUIET_END = Number(process.env.THREADS_QUIET_END ?? 6);
+function inQuietHours() {
+  if (!Number.isFinite(QUIET_START) || !Number.isFinite(QUIET_END) || QUIET_START === QUIET_END)
+    return false;
+  const jstHour = new Date(Date.now() + 9 * 3600 * 1000).getUTCHours(); // JST時
+  return QUIET_START < QUIET_END
+    ? jstHour >= QUIET_START && jstHour < QUIET_END
+    : jstHour >= QUIET_START || jstHour < QUIET_END; // 日をまたぐ場合
+}
+
 function cronAuthed(req) {
   const key = req.query.key || (req.body && req.body.key) || req.get("x-cron-key") || "";
   return CRON_KEY && String(key) === CRON_KEY;
@@ -509,6 +522,11 @@ const tickHandler = wrap(async (req, res) => {
     // すでにこのスロットは投稿済み → 何もしない（二重投稿防止）
     if (postedThisProcess.has(slot) || slot <= (state.lastPostedIndex ?? -1)) {
       return res.json({ skipped: true, reason: "投稿済みスロット", slot });
+    }
+
+    // 静音時間帯は投稿を保留（状態を更新しないので、時間帯が明けた最初のtickで投稿される）
+    if (inQuietHours()) {
+      return res.json({ skipped: true, reason: "静音時間帯（深夜など）", slot });
     }
 
     // 素材を使い切ったら先頭に戻ってループ
