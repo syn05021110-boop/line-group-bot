@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>返信下書きアシスト｜副業ドラフト</title>
+    <style>
+      :root {
+        --g: linear-gradient(120deg, #6366f1, #a855f7, #ec4899);
+        --bg: #08080f; --surface: #14141d; --border: rgba(255, 255, 255, 0.11);
+        --text: #f2f1f8; --muted: #9a99ab; --accent: #8b7bff;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: var(--bg); color: var(--text); line-height: 1.65;
+        font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        -webkit-text-size-adjust: 100%;
+      }
+      .wrap { max-width: 620px; margin: 0 auto; padding: 20px 16px 90px; }
+      h1 { font-size: 1.2rem; margin: 0 0 4px; }
+      h1 b { background: var(--g); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .lead { color: var(--muted); font-size: 0.85rem; margin: 0 0 18px; }
+      .bar { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+      input {
+        flex: 1; min-width: 160px; background: var(--surface); border: 1px solid var(--border);
+        color: var(--text); border-radius: 11px; padding: 12px 14px; font: inherit; min-height: 44px;
+      }
+      .btn {
+        appearance: none; border: 1px solid var(--border); background: var(--surface); color: var(--text);
+        font: inherit; font-weight: 700; font-size: 0.9rem; padding: 11px 16px; border-radius: 11px;
+        cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      }
+      .btn.primary { background: var(--g); color: #fff; border-color: transparent; }
+      .btn:disabled { opacity: 0.5; }
+      .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 14px; }
+      .post { color: var(--muted); font-size: 0.82rem; border-left: 3px solid var(--border); padding-left: 10px; margin-bottom: 12px; white-space: pre-wrap; }
+      .who { font-weight: 800; font-size: 0.9rem; margin-bottom: 4px; }
+      .who .t { color: var(--muted); font-weight: 600; font-size: 0.78rem; margin-left: 8px; }
+      .cmt { white-space: pre-wrap; font-size: 0.98rem; margin: 2px 0 12px; }
+      .drafts { display: flex; flex-direction: column; gap: 9px; margin-top: 10px; }
+      .draft { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+      .draft .d { white-space: pre-wrap; font-size: 0.95rem; margin-bottom: 9px; }
+      .draft .row { display: flex; gap: 8px; }
+      .mini { font-size: 0.82rem; padding: 8px 12px; flex: 1; }
+      .links { display: flex; gap: 8px; margin-top: 10px; }
+      .link { color: #c9c6ff; font-size: 0.82rem; text-decoration: none; font-weight: 700; }
+      .empty, .err { text-align: center; color: var(--muted); padding: 40px 10px; }
+      .err { color: #ff9db0; }
+      .spin { width: 26px; height: 26px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.15); border-top-color: var(--accent); animation: s 0.8s linear infinite; margin: 30px auto; }
+      @keyframes s { to { transform: rotate(360deg); } }
+      .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px); opacity: 0; background: #111; color: #fff; padding: 11px 20px; border-radius: 999px; font-size: 0.85rem; font-weight: 700; pointer-events: none; transition: 0.25s; box-shadow: 0 8px 30px rgba(0,0,0,0.35); }
+      .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+      @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1><b>返信下書きアシスト</b></h1>
+      <p class="lead">自分の投稿についたコメントに、AIが返信案を3つ提案します。気に入ったものをコピーして、Threadsで貼って送信（送信は必ず自分で）。</p>
+      <div class="bar">
+        <input id="key" type="password" placeholder="CRON_KEY を入力" autocomplete="off" />
+        <button class="btn primary" id="load">コメントを読み込む</button>
+      </div>
+      <div id="out"></div>
+    </div>
+    <div class="toast" id="toast">コピーしました</div>
+
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const out = $("#out");
+      const keyEl = $("#key");
+      keyEl.value = localStorage.getItem("cronKey") || "";
+
+      let tt;
+      function toast(m) {
+        const t = $("#toast");
+        t.textContent = m; t.classList.add("show");
+        clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 1500);
+      }
+      async function copy(text) {
+        try { await navigator.clipboard.writeText(text); }
+        catch (_) { const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+        toast("コピーしました");
+      }
+      const esc = (s) => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+      $("#load").addEventListener("click", load);
+      async function load() {
+        const key = keyEl.value.trim();
+        if (!key) return toast("CRON_KEY を入力してください");
+        localStorage.setItem("cronKey", key);
+        out.innerHTML = '<div class="spin"></div>';
+        try {
+          const r = await fetch("/api/threads/replies?key=" + encodeURIComponent(key));
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.error || "読み込みに失敗しました");
+          render(d.replies || []);
+        } catch (e) {
+          out.innerHTML = '<div class="err">' + esc(e.message) + "</div>";
+        }
+      }
+
+      function render(replies) {
+        if (!replies.length) {
+          out.innerHTML = '<div class="empty">まだ返信するコメントはありません。<br>投稿にコメントがつくとここに出ます。</div>';
+          return;
+        }
+        out.innerHTML = "";
+        replies.forEach((rp, i) => {
+          const c = document.createElement("div");
+          c.className = "card";
+          const when = rp.timestamp ? new Date(rp.timestamp).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }) : "";
+          c.innerHTML =
+            (rp.postText ? '<div class="post">自分の投稿：' + esc(rp.postText) + "</div>" : "") +
+            '<div class="who">@' + esc(rp.username) + '<span class="t">' + esc(when) + "</span></div>" +
+            '<div class="cmt">' + esc(rp.text) + "</div>" +
+            '<button class="btn primary" data-act="gen" data-i="' + i + '">✨ 返信案を作る</button>' +
+            '<div class="drafts" id="dr-' + i + '"></div>' +
+            (rp.permalink ? '<div class="links"><a class="link" href="' + esc(rp.permalink) + '" target="_blank" rel="noopener">Threadsで開いて返信 ↗</a></div>' : "");
+          c._data = rp;
+          out.appendChild(c);
+        });
+      }
+
+      out.addEventListener("click", async (e) => {
+        const gen = e.target.closest('[data-act="gen"]');
+        if (gen) {
+          const i = gen.dataset.i;
+          const card = gen.closest(".card");
+          const rp = card._data;
+          const box = $("#dr-" + i);
+          gen.disabled = true; gen.textContent = "生成中…";
+          box.innerHTML = '<div class="spin"></div>';
+          try {
+            const r = await fetch("/api/threads/draft", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ key: keyEl.value.trim(), postText: rp.postText, comment: rp.text, username: rp.username }),
+            });
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || "生成に失敗しました");
+            box.innerHTML = "";
+            (d.drafts || []).forEach((text) => {
+              const el = document.createElement("div");
+              el.className = "draft";
+              el.innerHTML = '<div class="d">' + esc(text) + '</div><div class="row"><button class="btn mini primary">📋 コピー</button></div>';
+              el.querySelector("button").addEventListener("click", () => copy(text));
+              box.appendChild(el);
+            });
+            gen.textContent = "✨ 作り直す";
+          } catch (err) {
+            box.innerHTML = '<div class="err">' + esc(err.message) + "</div>";
+            gen.textContent = "✨ 返信案を作る";
+          } finally {
+            gen.disabled = false;
+          }
+        }
+      });
+
+      if (keyEl.value) load();
+    </script>
+  </body>
+</html>

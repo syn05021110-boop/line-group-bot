@@ -16,7 +16,13 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import dotenv from "dotenv";
 
-import { publishThreadsPost, refreshThreadsToken, threadsConfigured } from "./lib/threads.mjs";
+import {
+  publishThreadsPost,
+  refreshThreadsToken,
+  threadsConfigured,
+  getRecentReplies,
+} from "./lib/threads.mjs";
+import { completeJSON } from "./lib/anthropic.mjs";
 import { interviewTurn, synthesizeStrengths } from "./lib/hearing.mjs";
 import {
   generateThreads,
@@ -58,6 +64,10 @@ app.get("/api/health", (req, res) => {
 app.get("/admin", (req, res) => res.sendFile(join(PROJECT_ROOT, "public", "admin.html")));
 // 決済成功ページ（Stripeの支払い後の戻り先）
 app.get("/success", (req, res) => res.sendFile(join(PROJECT_ROOT, "public", "success.html")));
+// 返信下書きアシスト（自分の投稿へのコメントにAI返信案）
+app.get("/threads-replies", (req, res) =>
+  res.sendFile(join(PROJECT_ROOT, "public", "threads-replies.html"))
+);
 
 /* ===== 有料解放（期限つき個別コード方式） =====
  * ・買い切り = 無期限の署名コード
@@ -584,6 +594,65 @@ app.post(
     const data = await refreshThreadsToken();
     const days = data.expires_in ? Math.floor(data.expires_in / 86400) : null;
     res.json({ ok: true, newToken: data.access_token, expiresInDays: days });
+  })
+);
+
+/* ===== 返信下書きアシスト（③リプ返しの時短。送信は必ず手動） ===== */
+
+// 自分の投稿についたコメント一覧を取得
+app.get(
+  "/api/threads/replies",
+  wrap(async (req, res) => {
+    if (!cronAuthed(req)) return res.status(401).json({ error: "CRON_KEY が違います" });
+    if (!threadsConfigured())
+      return res.status(400).json({ error: "THREADS_ACCESS_TOKEN が未設定です" });
+    try {
+      const replies = await getRecentReplies({ posts: 8 });
+      res.json({ replies });
+    } catch (e) {
+      // 権限不足はよくあるので分かりやすく案内
+      const hint = /permission|read_replies|OAuth|scope|code.*10|code.*200/i.test(e.message)
+        ? "（Metaアプリで threads_read_replies 権限を追加し、トークンを再発行してください）"
+        : "";
+      res.status(400).json({ error: e.message + hint });
+    }
+  })
+);
+
+// コメントに対する返信案をAIで2〜3個生成
+const REPLY_SYSTEM = `あなたは日本のThreadsアカウント「副業ドラフト（@shachiku_mao）」の中の人「社畜Mao」です。
+会社員の副業・発信・強み棚卸しを応援する、等身大で親しみやすい発信者。
+
+自分の投稿についたコメントへの「返信案」を3つ作ってください。狙いは会話を続けて信頼を作ること。
+
+ルール:
+- それぞれ40〜120字程度、口調はやわらかく等身大（絵文字は0〜1個まで）
+- 3案はトーンを変える：①共感＋一言お礼 ②自分の体験や視点を1つ足す ③相手が答えやすい軽い質問返し
+- 説教くさくしない。宣伝・URL・「プロフィールから」等の誘導は入れない
+- コメントに具体的に応答する（コピペ感を出さない）
+- 出力は次のJSONのみ: {"drafts":["案1","案2","案3"]}`;
+
+app.post(
+  "/api/threads/draft",
+  wrap(async (req, res) => {
+    if (!cronAuthed(req)) return res.status(401).json({ error: "CRON_KEY が違います" });
+    const { postText, comment, username } = req.body || {};
+    if (!comment || !String(comment).trim())
+      return res.status(400).json({ error: "コメントが空です" });
+    const user = username ? `@${username}` : "読者";
+    const messages = [
+      {
+        role: "user",
+        content:
+          `【自分の投稿】\n${String(postText || "").slice(0, 400)}\n\n` +
+          `【${user} からのコメント】\n${String(comment).slice(0, 500)}\n\n` +
+          `このコメントへの返信案を3つ、JSONで。`,
+      },
+    ];
+    const data = await completeJSON({ system: REPLY_SYSTEM, messages, maxTokens: 1024 });
+    const drafts = Array.isArray(data && data.drafts) ? data.drafts.filter(Boolean).slice(0, 3) : [];
+    if (!drafts.length) return res.status(502).json({ error: "返信案の生成に失敗しました" });
+    res.json({ drafts });
   })
 );
 
