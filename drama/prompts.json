@@ -1,0 +1,173 @@
+{
+  "_comment": "第1話の生成プロンプト定義。character-sheet.md の内容をスクリプトから実行できる形にしたもの。文言を直すときは character-sheet.md と両方直すこと。",
+
+  "style": "Japanese late-night anime style, cel shading, clean confident lineart, muted desaturated palette, deep blue night tones with a single warm light source, soft film grain, no text, no watermark, no signature",
+
+  "negative": "photorealistic, 3d render, western cartoon, chibi, extra fingers, deformed hands, multiple people, watermark, text, logo, oversaturated colors, white clothing, bright daylight, lens flare, heavy makeup, exaggerated expression, open mouth screaming",
+
+  "aspect": {
+    "sheet": "3:2 horizontal aspect ratio",
+    "cut": "vertical 9:16 aspect ratio, cinematic vertical composition"
+  },
+
+  "targets": {
+    "akari_master": {
+      "dir": "char",
+      "aspect": "sheet",
+      "ref": [],
+      "prompt": "character reference portrait of a 22-year-old Japanese woman, chin-length black bob haircut with blunt bangs, slightly downturned tired eyes, dark brown iris, small mouth, no makeup, wearing an oversized charcoal black hoodie with the hood down, neutral calm expression, facing directly toward the viewer, bust-up composition, plain dark grey background, even soft lighting, front view only, single character",
+      "note": "最初に作る。平坦な均一ライティングであることが重要。ここで陰影をつけると全カットに焼き付く。"
+    },
+    "akari_3q_left": {
+      "dir": "char",
+      "aspect": "sheet",
+      "ref": ["akari_master"],
+      "prompt": "same character as the reference image, identical face and hairstyle, three quarter view from the left, bust-up, plain dark grey background, even soft lighting, single character"
+    },
+    "akari_profile": {
+      "dir": "char",
+      "aspect": "sheet",
+      "ref": ["akari_master"],
+      "prompt": "same character as the reference image, identical face and hairstyle, profile view from the left, bust-up, plain dark grey background, even soft lighting, single character"
+    },
+    "akari_back": {
+      "dir": "char",
+      "aspect": "sheet",
+      "ref": ["akari_master"],
+      "prompt": "same character as the reference image, identical hairstyle and clothing, view from behind, back of the head and shoulders, plain dark grey background, even soft lighting, single character",
+      "note": "C5で使う。顔が崩れやすいときの逃げ構図の要。必ず作っておく。"
+    },
+    "akari_neutral": {
+      "dir": "char",
+      "aspect": "cut",
+      "ref": ["akari_master"],
+      "prompt": "same character as the reference image, identical face and hairstyle, relaxed neutral expression, faint smile, bust-up, front view, warm ceiling light from above, dim room behind her, single character"
+    },
+    "akari_doubt": {
+      "dir": "char",
+      "aspect": "cut",
+      "ref": ["akari_master"],
+      "prompt": "same character as the reference image, identical face and hairstyle, slightly puzzled expression, one eyebrow lowered, lips parted a little, bust-up, front view, cold blue screen glow lighting her face from below, dark room behind her, single character"
+    },
+    "akari_freeze": {
+      "dir": "char",
+      "aspect": "cut",
+      "ref": ["akari_master"],
+      "prompt": "same character as the reference image, identical face and hairstyle, expression frozen, smile gone, eyes wide but calm, no exaggeration, lips closed tight, bust-up, front view, cold blue screen glow lighting her face from below, dark room behind her, single character",
+      "note": "C4。叫ばせない。静かに固まる。"
+    },
+    "akari_relief": {
+      "dir": "char",
+      "aspect": "cut",
+      "ref": ["akari_master"],
+      "prompt": "same character as the reference image, identical face and hairstyle, relieved genuine smile, eyes softened, shoulders lowered, bust-up, front view, cold blue screen glow lighting her face from below, dim room behind her, single character"
+    },
+    "akari_realize": {
+      "dir": "char",
+      "aspect": "cut",
+      "ref": ["akari_master"],
+      "prompt": "same character as the reference image, identical face and hairstyle, pupils shrunk, staring at the screen, mouth slightly open, all color drained from the face, bust-up, front view, cold blue screen glow lighting her face from below, dark room behind her, single character",
+      "note": "C14。ラストの表情。"
+    },
+
+    "mina_master": {
+      "dir": "char",
+      "aspect": "sheet",
+      "ref": [],
+      "prompt": "character reference portrait of a 22-year-old Japanese woman, long straight dark brown hair past the shoulders, center part, gentle round eyes, warm expression, wearing a loose olive green knit sweater, neutral calm expression, facing directly toward the viewer, bust-up composition, plain dark grey background, even soft lighting, front view only, single character",
+      "note": "アカリ=黒/ショート、ミナ=オリーブ/ロング。小さい画面ではシルエットでしか見分けられないので、この差を崩さない。"
+    },
+    "mina_worry": {
+      "dir": "char",
+      "aspect": "cut",
+      "ref": ["mina_master"],
+      "prompt": "same character as the reference image, identical face and hairstyle, concerned expression, slight frown, looking straight at the camera, bust-up, dim bedroom behind her, a door in the background left ajar by a few centimeters with pure darkness in the gap, low-key lighting from a single desk lamp, single character",
+      "note": "C1。背後のドアの隙間が伏線。暗いスマホ画面でも視認できる明るさか必ず確認。"
+    },
+    "mina_glance": {
+      "dir": "char",
+      "aspect": "cut",
+      "ref": ["mina_master"],
+      "prompt": "same character as the reference image, identical face and hairstyle, uneasy expression, eyes glancing toward the lower corner of the frame, not at the camera, bust-up, dim room, screen glow on her face, single character",
+      "note": "C3。視線が「こちら」ではなく画面の隅に向いていることが読み取れるか確認。"
+    },
+    "mina_relief": {
+      "dir": "char",
+      "aspect": "cut",
+      "ref": ["mina_master"],
+      "prompt": "same character as the reference image, identical face and hairstyle, relieved laugh, eyes closed, head tilted slightly, bust-up, dim room, screen glow on her face, single character"
+    },
+    "mina_frozen": {
+      "dir": "char",
+      "aspect": "cut",
+      "ref": ["mina_master"],
+      "prompt": "same character as the reference image, identical face and hairstyle, smile frozen mid-laugh, eyes wide, pupils contracted, unnaturally still, bust-up, dim room, screen glow on her face, single character",
+      "note": "C11。笑顔が止まる瞬間。動かさないことが怖さになる。"
+    },
+
+    "white_figure": {
+      "dir": "fx",
+      "aspect": "cut",
+      "ref": [],
+      "negativeExtra": "face, eyes, head, portrait, character",
+      "prompt": "a white long sleeve and a pale hand emerging from the gap of a dark half-open door, the figure is completely obscured by shadow, no face visible, no head visible, only fabric and darkness, extremely low light, deep blue night tones, ominous stillness, single subject",
+      "note": "C13。顔は絶対に作らない。作らなければ破綻しようがない。"
+    },
+
+    "akari_room": {
+      "dir": "bg",
+      "aspect": "cut",
+      "ref": [],
+      "prompt": "empty small Japanese one-room apartment at night, unpacked cardboard boxes stacked against the wall, a bare mattress on the floor, no furniture, beige walls, a single warm ceiling light, deep shadows in the corners, no people, background art only"
+    },
+    "akari_closet": {
+      "dir": "bg",
+      "aspect": "cut",
+      "ref": ["akari_room"],
+      "prompt": "closet interior of the same apartment, empty, only a few hangers, dark, no people, background art only"
+    },
+    "akari_door_chain": {
+      "dir": "bg",
+      "aspect": "cut",
+      "ref": ["akari_room"],
+      "prompt": "apartment entrance door seen from inside, security chain fastened, close-up on the chain, dim, no people, background art only",
+      "note": "C7。戸締まりが完璧であることを見せる = 消去法の伏線。"
+    },
+    "mina_room_door_5cm": {
+      "dir": "bg",
+      "aspect": "cut",
+      "ref": [],
+      "prompt": "a lived-in Japanese bedroom at night seen from the front, a desk lamp as the only light source, a door in the background LEFT AJAR BY ABOUT FIVE CENTIMETERS, pure black darkness in the gap, no people, background art only"
+    },
+    "mina_room_door_20cm": {
+      "dir": "bg",
+      "aspect": "cut",
+      "ref": ["mina_room_door_5cm"],
+      "prompt": "the exact same bedroom as the reference image, identical furniture, identical camera angle, identical lighting, the ONLY difference is that the door in the background is now OPEN BY ABOUT TWENTY CENTIMETERS, the dark gap clearly wider, pure black darkness in the gap, no people, background art only",
+      "note": "C12。第1話の反転そのもの。5cm版と並べて、ドア以外が完全に同一であることを必ず目視確認する。"
+    }
+  },
+
+  "order": [
+    "akari_master",
+    "mina_master",
+    "akari_3q_left",
+    "akari_profile",
+    "akari_back",
+    "akari_neutral",
+    "akari_doubt",
+    "akari_freeze",
+    "akari_relief",
+    "akari_realize",
+    "mina_worry",
+    "mina_glance",
+    "mina_relief",
+    "mina_frozen",
+    "white_figure",
+    "akari_room",
+    "akari_closet",
+    "akari_door_chain",
+    "mina_room_door_5cm",
+    "mina_room_door_20cm"
+  ]
+}

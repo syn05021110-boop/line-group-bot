@@ -85,6 +85,38 @@ B の要点は「**全カットを動かさない**」こと。
 2. **YouTube / Instagram への投稿と収益化が許可されているか**
 3. **生成物が他ユーザーに公開される設定になっていないか**（Midjourney 系は既定で公開ギャラリーに載る）
 
+### 3-3. 生成の自動化（`drama/tools/generate.mjs`）
+
+Web の画面から1枚ずつ作ってもよいが、**参照画像の添付忘れ**と**ファイル名の付け間違い**が
+一貫性を壊す二大要因なので、スクリプトから叩いたほうが事故が減る。
+
+```bash
+export GEMINI_API_KEY=...                        # Google AI Studio で発行
+
+node drama/tools/generate.mjs --list             # 対象と依存関係の一覧
+node drama/tools/generate.mjs akari_master --n 4 # マスターを4案出す
+node drama/tools/generate.mjs akari_freeze       # 参照画像は自動で添付される
+node drama/tools/generate.mjs --all              # 依存順に20点まとめて
+```
+
+プロンプトの実体は **`drama/prompts.json`**。`character-sheet.md` と同じ文言が入っているので、
+**直すときは両方直す**こと。
+
+#### 運用ルール
+
+- 出力は `drama/ep01/assets/<dir>/<name>_v<N>.png`。**既存ファイルは絶対に上書きしない**
+- 気に入った1枚を **`<name>.png` にリネームする**。これが「確定版」で、以降の参照元になる
+- 確定版が無い状態で派生を作ろうとすると、**エラーで止まる**（API を呼ぶ前に止まるので課金されない）
+- git には**確定版だけ**が入る。`_vN` と本編カットは `.gitignore` 済み
+
+#### つまずいたら
+
+| 症状 | 対処 |
+|---|---|
+| モデルIDのエラー | `GEMINI_IMAGE_MODEL` env で差し替える。提供モデル名は変わるので公式ドキュメントを確認 |
+| `finishReason` 付きで画像が返らない | 安全フィルタ。恐怖表現の語を弱める（`ominous` → `quiet` など） |
+| レート制限 | 1.5秒間隔を入れてあるが、無料枠では `--n` を小さくする |
+
 ---
 
 ## 4. キャラクター一貫性の作り方（最重要）
