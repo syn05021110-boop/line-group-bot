@@ -4,5 +4,7 @@ ep01/assets/**/*_v[0-9]*.png
 
 # 本編カットと動画は容量が大きいので git では管理しない。
 ep01/assets/cuts/
+ep01/assets/clips/
+ep01/out/
 *.mp4
 *.mov

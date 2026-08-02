@@ -117,6 +117,65 @@ node drama/tools/generate.mjs --all              # 依存順に20点まとめて
 | `finishReason` 付きで画像が返らない | 安全フィルタ。恐怖表現の語を弱める（`ominous` → `quiet` など） |
 | レート制限 | 1.5秒間隔を入れてあるが、無料枠では `--n` を小さくする |
 
+### 3-4. 動画にする（`drama/tools/animatic.mjs` / `video.mjs`）
+
+編集タイムラインは **`drama/timeline.json`**。`script.md` のカット表と1対1で対応している。
+
+#### 手順
+
+**① まず静止画だけで通しを書き出す。**
+
+```bash
+node drama/tools/animatic.mjs --dry-run    # 実行せずffmpegコマンドを確認
+node drama/tools/animatic.mjs              # ep01/out/animatic.mp4
+node drama/tools/animatic.mjs --cut C12    # 1カットだけ確認
+```
+
+寄り引き（Ken Burns）とテロップ焼き込みまで入った 1080×1920 / 30fps の mp4 が出る。
+**i2v を1本も作っていなくても通しが出る**ので、ここで尺とテンポを固めてしまう。
+この段階で「間延びしている」「フックが弱い」が分かる。**絵を作り込む前に気づけるのが最大の利点。**
+
+**② テンポが決まってから、動かす5カットだけ i2v にかける。**
+
+```bash
+node drama/tools/video.mjs --list          # 対象と生成済みかどうか
+node drama/tools/video.mjs C13             # 1本だけ
+node drama/tools/video.mjs --all           # 5本まとめて（数十分かかる）
+```
+
+出力は `assets/clips/<id>.mp4`。**animatic.mjs が次回から自動で拾う**ので、
+もう一度 `animatic.mjs` を叩けば差し替わった通しが出る。
+
+**③ 音を足す。**
+
+```bash
+node drama/tools/animatic.mjs --audio ep01/assets/audio/mix.wav
+```
+
+セリフ・BGM・SE のミックスは編集ソフト側で作り、1本の wav にして渡す。
+
+#### 必要なもの
+
+```bash
+# macOS
+brew install ffmpeg
+# Ubuntu
+sudo apt install ffmpeg fonts-noto-cjk
+```
+
+**日本語フォントが無いとテロップが豆腐になる。** 見つからない場合は
+`TELOP_FONT=/path/to/font.ttc` で明示する。
+
+#### つまずいたら
+
+| 症状 | 対処 |
+|---|---|
+| テロップが □□□ になる | フォント未検出。`TELOP_FONT` を指定する |
+| ズームがガタつく | 元画像の解像度が低い。生成時に大きめに出す |
+| 結合時にエラー | 全カットの解像度・fps が揃っていない。`--cut` で個別に確認する |
+| Veo のモデルIDでエラー | `GEMINI_VIDEO_MODEL` で差し替える。提供モデルは変動する |
+| i2v で顔が別人になる | そのカットは静止画のまま使う。**動かないカットは誰も気づかない** |
+
 ---
 
 ## 4. キャラクター一貫性の作り方（最重要）

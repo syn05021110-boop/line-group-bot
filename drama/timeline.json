@@ -1,0 +1,105 @@
+{
+  "_comment": "第1話の編集タイムライン。script.md のカット表と対応。尺を変えるときは両方直すこと。",
+
+  "output": { "width": 1080, "height": 1920, "fps": 30 },
+
+  "telop": {
+    "fontSize": 62,
+    "wrapChars": 14,
+    "y": 1120,
+    "_y_note": "画面下部30%（y=1344以降）はUIに隠れるので、そこに掛からない位置。"
+  },
+
+  "cuts": [
+    {
+      "id": "C1", "start": 0, "end": 3,
+      "src": "char/mina_worry", "type": "clip", "motion": "push_in",
+      "telop": "今そっち、誰かいた？",
+      "i2v": "subtle handheld camera sway, her eyes blink once, the dark gap in the door behind her breathes almost imperceptibly",
+      "note": "フック。背後のドアの隙間が伏線。"
+    },
+    {
+      "id": "C2", "start": 3, "end": 6,
+      "src": "char/akari_neutral", "type": "still", "motion": "hold",
+      "telop": "え？ いないよ"
+    },
+    {
+      "id": "C3", "start": 6, "end": 10,
+      "src": "char/mina_glance", "type": "still", "motion": "push_in",
+      "telop": "白い服の人。画面の奥、通ったんだけど",
+      "note": "視線が画面の隅に向いているのが伏線。"
+    },
+    {
+      "id": "C4", "start": 10, "end": 13,
+      "src": "char/akari_freeze", "type": "clip", "motion": "push_in",
+      "telop": null,
+      "i2v": "her smile slowly fades, she stops breathing for a moment, camera pushes in very slightly",
+      "note": "BGMを止める。心音1回。"
+    },
+    {
+      "id": "C5", "start": 13, "end": 18,
+      "src": "char/akari_back", "type": "still", "motion": "pan_right",
+      "telop": "……ちょっと待って"
+    },
+    {
+      "id": "C6", "start": 18, "end": 22,
+      "src": "bg/akari_closet", "type": "still", "motion": "push_in",
+      "telop": null
+    },
+    {
+      "id": "C7", "start": 22, "end": 26,
+      "src": "bg/akari_door_chain", "type": "still", "motion": "hold",
+      "telop": null,
+      "note": "戸締まりが完璧＝消去法の伏線。"
+    },
+    {
+      "id": "C8", "start": 26, "end": 31,
+      "src": "char/akari_relief", "type": "still", "motion": "pull_out",
+      "telop": "いないって。見間違いでしょ"
+    },
+    {
+      "id": "C9", "start": 31, "end": 35,
+      "src": "char/mina_relief", "type": "still", "motion": "hold",
+      "telop": "だよね。ごめん、脅かして"
+    },
+    {
+      "id": "C10", "start": 35, "end": 40,
+      "src": "char/akari_relief", "type": "still", "motion": "hold",
+      "telop": "てか私、白い服なんて持ってないし",
+      "note": "構成の心臓。黒いパーカーがはっきり映っていること。"
+    },
+    {
+      "id": "C11", "start": 40, "end": 44,
+      "src": "char/mina_frozen", "type": "clip", "motion": "hold",
+      "telop": "……え",
+      "i2v": "her smile freezes mid-laugh, pupils contract, no other movement, unsettling stillness",
+      "note": "BGM完全停止。"
+    },
+    {
+      "id": "C12", "start": 44, "end": 48,
+      "src": "bg/mina_room_door_20cm", "type": "clip", "motion": "push_in",
+      "telop": null,
+      "i2v": "the door in the background opens slowly and silently by another ten centimeters, nothing else moves",
+      "note": "無言で見せる。テロップを入れない。"
+    },
+    {
+      "id": "C13", "start": 48, "end": 52,
+      "src": "fx/white_figure", "type": "clip", "motion": "push_in",
+      "telop": null,
+      "i2v": "a white sleeve slides into the gap of the dark doorway, no face visible, extremely slow motion",
+      "note": "顔は映さない。"
+    },
+    {
+      "id": "C14", "start": 52, "end": 55,
+      "src": "char/akari_realize", "type": "still", "motion": "push_in",
+      "telop": "ミナ、後ろ",
+      "note": "この直後に通話が切れる。"
+    },
+    {
+      "id": "LOGO", "start": 55, "end": 56,
+      "src": null, "type": "black", "motion": "hold",
+      "telop": "ラスト5秒", "telopY": 920,
+      "note": "全話共通の締め。"
+    }
+  ]
+}
