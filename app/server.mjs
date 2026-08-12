@@ -68,6 +68,10 @@ app.get("/success", (req, res) => res.sendFile(join(PROJECT_ROOT, "public", "suc
 app.get("/threads-replies", (req, res) =>
   res.sendFile(join(PROJECT_ROOT, "public", "threads-replies.html"))
 );
+// リプ営業アシスト（他人の投稿を貼る→刺さるリプ案）
+app.get("/threads-outreach", (req, res) =>
+  res.sendFile(join(PROJECT_ROOT, "public", "threads-outreach.html"))
+);
 
 /* ===== 有料解放（期限つき個別コード方式） =====
  * ・買い切り = 無期限の署名コード
@@ -652,6 +656,44 @@ app.post(
     const data = await completeJSON({ system: REPLY_SYSTEM, messages, maxTokens: 1024 });
     const drafts = Array.isArray(data && data.drafts) ? data.drafts.filter(Boolean).slice(0, 3) : [];
     if (!drafts.length) return res.status(502).json({ error: "返信案の生成に失敗しました" });
+    res.json({ drafts });
+  })
+);
+
+/* ===== リプ営業アシスト（他人の投稿に置く"価値あるリプ"を即生成。伸びの最大レバー） ===== */
+const OUTREACH_SYSTEM = `あなたは日本のThreadsアカウント「副業ドラフト（@shachiku_mao）」の中の人「社畜Mao」です。
+会社員の副業・発信・強み棚卸しを応援する、等身大で親しみやすい発信者。
+
+「他人の投稿」に置くリプ（コメント）案を3つ作ってください。
+狙いは"良い人・分かってる人"と思わせて、相手やその読者にプロフィールを見に来てもらうこと（=リプ営業）。
+
+ルール:
+- それぞれ30〜90字。短く自然に。口調はやわらかく等身大（絵文字は0〜1個）
+- 「勉強になります」「参考になります」等の中身ゼロな定型は禁止
+- 必ず"価値の一言"を入れる。3案でトーンを変える：
+  ①共感＋自分の短い体験　②別視点/+αの気づき　③相手が答えやすい軽い質問返し
+- 宣伝・URL・「プロフィールから」等の直接誘導は入れない（あくまで自然な会話）
+- 相手の投稿内容に具体的に反応する（コピペ感を消す）
+- 出力は次のJSONのみ: {"drafts":["案1","案2","案3"]}`;
+
+app.post(
+  "/api/threads/outreach-draft",
+  wrap(async (req, res) => {
+    if (!cronAuthed(req)) return res.status(401).json({ error: "CRON_KEY が違います" });
+    const { post } = req.body || {};
+    if (!post || !String(post).trim())
+      return res.status(400).json({ error: "相手の投稿を貼ってください" });
+    const messages = [
+      {
+        role: "user",
+        content:
+          `【他人の投稿（この投稿にリプを置きたい）】\n${String(post).slice(0, 700)}\n\n` +
+          `この投稿に置く"価値あるリプ"案を3つ、JSONで。`,
+      },
+    ];
+    const data = await completeJSON({ system: OUTREACH_SYSTEM, messages, maxTokens: 1024 });
+    const drafts = Array.isArray(data && data.drafts) ? data.drafts.filter(Boolean).slice(0, 3) : [];
+    if (!drafts.length) return res.status(502).json({ error: "リプ案の生成に失敗しました" });
     res.json({ drafts });
   })
 );

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>リプ営業アシスト｜副業ドラフト</title>
+    <style>
+      :root {
+        --g: linear-gradient(120deg, #6366f1, #a855f7, #ec4899);
+        --bg: #08080f; --surface: #14141d; --border: rgba(255, 255, 255, 0.11);
+        --text: #f2f1f8; --muted: #9a99ab; --accent: #8b7bff;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.65;
+        font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; -webkit-text-size-adjust: 100%; }
+      .wrap { max-width: 620px; margin: 0 auto; padding: 22px 16px 90px; }
+      h1 { font-size: 1.2rem; margin: 0 0 4px; }
+      h1 b { background: var(--g); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .lead { color: var(--muted); font-size: 0.85rem; margin: 0 0 16px; }
+      .tips { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 0.8rem; color: var(--muted); margin-bottom: 16px; }
+      .tips b { color: var(--text); }
+      label { font-size: 0.82rem; font-weight: 700; color: var(--muted); display: block; margin: 0 2px 6px; }
+      textarea, input { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 12px; padding: 13px 14px; font: inherit; }
+      textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+      .key { margin-bottom: 12px; }
+      .btn { appearance: none; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-weight: 700; font-size: 0.9rem; padding: 12px 16px; border-radius: 12px; cursor: pointer; min-height: 46px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 10px; }
+      .btn.primary { background: var(--g); color: #fff; border-color: transparent; }
+      .btn:disabled { opacity: 0.5; }
+      .btn:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .drafts { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+      .draft { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+      .tag { font-size: 0.72rem; font-weight: 800; color: var(--accent); margin-bottom: 6px; }
+      .d { white-space: pre-wrap; font-size: 0.98rem; margin-bottom: 10px; }
+      .mini { font-size: 0.84rem; padding: 9px 14px; margin: 0; width: auto; }
+      .spin { width: 26px; height: 26px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.15); border-top-color: var(--accent); animation: s 0.8s linear infinite; margin: 24px auto; }
+      @keyframes s { to { transform: rotate(360deg); } }
+      .err { color: #ff9db0; text-align: center; padding: 16px; }
+      .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px); opacity: 0; background: #111; color: #fff; padding: 11px 20px; border-radius: 999px; font-size: 0.85rem; font-weight: 700; pointer-events: none; transition: 0.25s; z-index: 50; box-shadow: 0 8px 30px rgba(0,0,0,0.35); }
+      .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+      @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1><b>リプ営業アシスト</b></h1>
+      <p class="lead">同ジャンルの投稿を貼るだけ → 刺さるリプ案が3つ出ます。コピーして相手の投稿に返信。これが0→1000の一番の近道。</p>
+      <div class="tips">
+        <b>コツ</b>：狙うのは<b>フォロワー1,000〜3万</b>の投稿／<b>投稿30分以内</b>／最初の10リプに入る。1日<b>10〜15件</b>返すと初速がつく。
+      </div>
+      <input class="key" id="key" type="password" placeholder="CRON_KEY を入力" autocomplete="off" />
+      <label for="post">相手の投稿を貼る（本文をコピペ）</label>
+      <textarea id="post" placeholder="例：副業したいけど何から始めればいいか分からない…"></textarea>
+      <button class="btn primary" id="gen">✨ リプ案を3つ作る</button>
+      <div class="drafts" id="out"></div>
+    </div>
+    <div class="toast" id="toast">コピーしました</div>
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const keyEl = $("#key"), postEl = $("#post"), out = $("#out");
+      keyEl.value = localStorage.getItem("cronKey") || "";
+      let tt;
+      function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 1500); }
+      async function copy(text) {
+        try { await navigator.clipboard.writeText(text); }
+        catch (_) { const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+        toast("コピーしました");
+      }
+      const esc = (s) => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const TAGS = ["共感＋体験", "別視点＋α", "軽い質問返し"];
+      $("#gen").addEventListener("click", async () => {
+        const key = keyEl.value.trim(), post = postEl.value.trim();
+        if (!key) return toast("CRON_KEY を入力してください");
+        if (!post) return toast("相手の投稿を貼ってください");
+        localStorage.setItem("cronKey", key);
+        const btn = $("#gen"); btn.disabled = true; btn.textContent = "生成中…";
+        out.innerHTML = '<div class="spin"></div>';
+        try {
+          const r = await fetch("/api/threads/outreach-draft", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key, post }),
+          });
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.error || "生成に失敗しました");
+          out.innerHTML = "";
+          (d.drafts || []).forEach((text, i) => {
+            const el = document.createElement("div");
+            el.className = "draft";
+            el.innerHTML = '<div class="tag">' + (TAGS[i] || "案") + '</div><div class="d">' + esc(text) + '</div><button class="btn primary mini">📋 コピー</button>';
+            el.querySelector("button").addEventListener("click", () => copy(text));
+            out.appendChild(el);
+          });
+        } catch (e) {
+          out.innerHTML = '<div class="err">' + esc(e.message) + "</div>";
+        } finally {
+          btn.disabled = false; btn.textContent = "✨ リプ案を3つ作る";
+        }
+      });
+    </script>
+  </body>
+</html>
