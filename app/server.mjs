@@ -513,51 +513,85 @@ function cronAuthed(req) {
   return CRON_KEY && String(key) === CRON_KEY;
 }
 
-// 外部cronが定期的に叩く。スロットが進んでいれば1本投稿する。
-// GET/POST両対応（cronサービスの既定がGETでも動くように）
+// スロットが進んでいれば1本投稿する（中身の関数。HTTPと内部スケジューラの両方から呼ぶ）
+async function doThreadsTick() {
+  if (!threadsConfigured()) return { code: 400, body: { error: "THREADS_ACCESS_TOKEN が未設定です" } };
+  if (!THREADS_QUEUE.length) return { code: 400, body: { error: "投稿素材(threads-queue.json)が空です" } };
+
+  // 開始日時：env優先、なければ状態ファイル、なければ今回を開始点として保存
+  const state = readThreadsState();
+  let startMs = threadsStart();
+  if (startMs == null) {
+    startMs = state.start ? Number(state.start) : Date.now();
+    if (!state.start) writeThreadsState({ ...state, start: startMs });
+  }
+
+  const slot = currentSlotIndex(startMs);
+  if (slot < 0) return { code: 200, body: { skipped: true, reason: "開始前", startMs } };
+
+  // すでにこのスロットは投稿済み → 何もしない（二重投稿防止。内部/外部が同時に叩いても安全）
+  if (postedThisProcess.has(slot) || slot <= (state.lastPostedIndex ?? -1))
+    return { code: 200, body: { skipped: true, reason: "投稿済みスロット", slot } };
+
+  // 静音時間帯は投稿を保留（状態を更新しないので、明けた最初のtickで投稿される）
+  if (inQuietHours()) return { code: 200, body: { skipped: true, reason: "静音時間帯（深夜など）", slot } };
+
+  // 素材を使い切ったら先頭に戻ってループ
+  const text = THREADS_QUEUE[slot % THREADS_QUEUE.length];
+  try {
+    const id = await publishThreadsPost(text);
+    postedThisProcess.add(slot);
+    writeThreadsState({ lastPostedIndex: slot, start: startMs });
+    console.log(`[threads] 投稿成功 slot=${slot} id=${id}`);
+    return { code: 200, body: { posted: true, slot, id, preview: text.slice(0, 30) } };
+  } catch (e) {
+    console.error("[threads] 投稿失敗 slot=" + slot, e.message);
+    return { code: 502, body: { error: e.message, slot } };
+  }
+}
+
+// 外部cron（backup）が叩けるHTTPエンドポイント。GET/POST両対応。
 const tickHandler = wrap(async (req, res) => {
-    if (!cronAuthed(req)) return res.status(401).json({ error: "CRON_KEY が違います" });
-    if (!threadsConfigured())
-      return res.status(400).json({ error: "THREADS_ACCESS_TOKEN が未設定です" });
-    if (!THREADS_QUEUE.length)
-      return res.status(400).json({ error: "投稿素材(threads-queue.json)が空です" });
-
-    // 開始日時：env優先、なければ状態ファイル、なければ今回を開始点として保存
-    const state = readThreadsState();
-    let startMs = threadsStart();
-    if (startMs == null) {
-      startMs = state.start ? Number(state.start) : Date.now();
-      if (!state.start) writeThreadsState({ ...state, start: startMs });
-    }
-
-    const slot = currentSlotIndex(startMs);
-    if (slot < 0) return res.json({ skipped: true, reason: "開始前", startMs });
-
-    // すでにこのスロットは投稿済み → 何もしない（二重投稿防止）
-    if (postedThisProcess.has(slot) || slot <= (state.lastPostedIndex ?? -1)) {
-      return res.json({ skipped: true, reason: "投稿済みスロット", slot });
-    }
-
-    // 静音時間帯は投稿を保留（状態を更新しないので、時間帯が明けた最初のtickで投稿される）
-    if (inQuietHours()) {
-      return res.json({ skipped: true, reason: "静音時間帯（深夜など）", slot });
-    }
-
-    // 素材を使い切ったら先頭に戻ってループ
-    const text = THREADS_QUEUE[slot % THREADS_QUEUE.length];
-    try {
-      const id = await publishThreadsPost(text);
-      postedThisProcess.add(slot);
-      writeThreadsState({ lastPostedIndex: slot, start: startMs });
-      console.log(`[threads] 投稿成功 slot=${slot} id=${id}`);
-      res.json({ posted: true, slot, id, preview: text.slice(0, 30) });
-    } catch (e) {
-      console.error("[threads] 投稿失敗 slot=" + slot, e.message);
-      res.status(502).json({ error: e.message, slot });
-    }
+  if (!cronAuthed(req)) return res.status(401).json({ error: "CRON_KEY が違います" });
+  const r = await doThreadsTick();
+  res.status(r.code).json(r.body);
 });
 app.get("/api/threads/tick", tickHandler);
 app.post("/api/threads/tick", tickHandler);
+
+/* ===== 内部スケジューラ：外部cronに依存せず自分で定期投稿＋自己pingでスリープ防止 =====
+ * Render無料はアクセスが無いとスリープする。起動直後から自分の公開URLを定期的に叩いて
+ * inboundトラフィックを作り続けることで、スリープを防ぎつつ確実に投稿する。
+ *   SELF_URL / RENDER_EXTERNAL_URL … 自分の公開URL（Renderが自動設定）
+ *   THREADS_TICK_MINUTES … 内部tick間隔（既定10分。スリープ閾値15分より短く）
+ *   THREADS_INTERNAL_SCHEDULER=off … 内部スケジューラを無効化したい時
+ */
+const SELF_URL = (process.env.SELF_URL || process.env.RENDER_EXTERNAL_URL || "").replace(/\/$/, "");
+const INTERNAL_TICK_MS = (Number(process.env.THREADS_TICK_MINUTES) || 10) * 60 * 1000;
+if (threadsConfigured() && THREADS_QUEUE.length && process.env.THREADS_INTERNAL_SCHEDULER !== "off") {
+  const runInternal = async () => {
+    try {
+      const r = await doThreadsTick();
+      if (r.body?.posted) console.log("[threads] 内部tick投稿 slot=" + r.body.slot);
+      else if (r.body?.error) console.warn("[threads] 内部tick失敗:", r.body.error);
+    } catch (e) {
+      console.warn("[threads] 内部tick例外:", e.message);
+    }
+    // 自己ping（スリープ防止）：自分の公開URLを叩いて inbound を作る
+    if (SELF_URL) {
+      try {
+        await fetch(SELF_URL + "/api/health", { signal: AbortSignal.timeout(20000) });
+      } catch {
+        /* ネットワーク一時失敗は無視 */
+      }
+    }
+  };
+  setInterval(runInternal, INTERNAL_TICK_MS);
+  setTimeout(runInternal, 8000); // 起動8秒後に一度（デプロイ直後にすぐ投稿＆keep-warm開始）
+  console.log(
+    `[threads] 内部スケジューラ起動：${INTERNAL_TICK_MS / 60000}分ごと / self-ping=${SELF_URL ? "on" : "off(URL未設定)"}`
+  );
+}
 
 // 手動テスト投稿：指定インデックスを今すぐ投稿（動作確認用）
 // ブラウザで開くだけで試せるよう GET/POST 両対応
