@@ -487,12 +487,27 @@ function writeThreadsState(state) {
   }
 }
 
-// 「今この瞬間に投稿すべきスロット番号」を経過時間から算出
-function currentSlotIndex(startMs) {
-  const intervalMs = THREADS_INTERVAL_HOURS * 3600 * 1000;
-  const elapsed = Date.now() - startMs;
-  if (elapsed < 0) return -1; // まだ開始前
-  return Math.floor(elapsed / intervalMs);
+// ===== 人間らしい投稿スケジューラ（"4時間ぴったり"の機械リズムを排除）=====
+// 固定間隔をやめ、ランダム間隔＋ランダム選択にして bot判定/反復判定を避ける。
+const GAP_MIN_H = Number(process.env.THREADS_MIN_GAP_HOURS) || 5; // 最短間隔(時間)
+const GAP_MAX_H = Number(process.env.THREADS_MAX_GAP_HOURS) || 9; // 最長間隔(時間)
+const RECENT_KEEP = Math.min(8, Math.max(3, Math.floor(THREADS_QUEUE.length / 3)));
+let posting = false; // 内部tickと外部cronの競合ガード
+
+function randGapMs() {
+  const min = Math.min(GAP_MIN_H, GAP_MAX_H);
+  const max = Math.max(GAP_MIN_H, GAP_MAX_H);
+  return Math.round((min + Math.random() * (max - min)) * 3600 * 1000);
+}
+// 直近と被らないランダムな投稿インデックスを選ぶ（反復を避ける）
+function pickIndex(recent = []) {
+  const n = THREADS_QUEUE.length;
+  if (n <= 1) return 0;
+  const avoid = new Set(recent);
+  const pool = [];
+  for (let i = 0; i < n; i++) if (!avoid.has(i)) pool.push(i);
+  const from = pool.length ? pool : [...Array(n).keys()];
+  return from[Math.floor(Math.random() * from.length)];
 }
 
 // 静音時間帯（深夜など）は投稿しない。JSTの時刻で判定。
@@ -513,40 +528,45 @@ function cronAuthed(req) {
   return CRON_KEY && String(key) === CRON_KEY;
 }
 
-// スロットが進んでいれば1本投稿する（中身の関数。HTTPと内部スケジューラの両方から呼ぶ）
+// 投稿すべきタイミングなら1本投稿する（HTTPと内部スケジューラの両方から呼ぶ）
 async function doThreadsTick() {
   if (!threadsConfigured()) return { code: 400, body: { error: "THREADS_ACCESS_TOKEN が未設定です" } };
   if (!THREADS_QUEUE.length) return { code: 400, body: { error: "投稿素材(threads-queue.json)が空です" } };
 
-  // 開始日時：env優先、なければ状態ファイル、なければ今回を開始点として保存
+  const now = Date.now();
   const state = readThreadsState();
-  let startMs = threadsStart();
-  if (startMs == null) {
-    startMs = state.start ? Number(state.start) : Date.now();
-    if (!state.start) writeThreadsState({ ...state, start: startMs });
+
+  // 静音時間帯は保留（nextPostAtを進めない＝明けてから投稿）
+  if (inQuietHours()) return { code: 200, body: { skipped: true, reason: "静音時間帯（深夜など）" } };
+
+  // 次回投稿時刻が未設定（初回/再起動直後）→ 少し先にランダム設定（起動直後の連投を防ぐ）
+  if (!state.nextPostAt || !Number.isFinite(Number(state.nextPostAt))) {
+    const first = now + Math.round((20 + Math.random() * 70) * 60 * 1000); // 20〜90分後
+    writeThreadsState({ ...state, nextPostAt: first, recent: state.recent || [] });
+    return { code: 200, body: { skipped: true, reason: "次回時刻を初期化", nextPostAt: new Date(first).toISOString() } };
   }
 
-  const slot = currentSlotIndex(startMs);
-  if (slot < 0) return { code: 200, body: { skipped: true, reason: "開始前", startMs } };
+  // まだ時刻前 → 待機
+  if (now < Number(state.nextPostAt))
+    return { code: 200, body: { skipped: true, reason: "待機中", nextPostAt: new Date(Number(state.nextPostAt)).toISOString() } };
 
-  // すでにこのスロットは投稿済み → 何もしない（二重投稿防止。内部/外部が同時に叩いても安全）
-  if (postedThisProcess.has(slot) || slot <= (state.lastPostedIndex ?? -1))
-    return { code: 200, body: { skipped: true, reason: "投稿済みスロット", slot } };
-
-  // 静音時間帯は投稿を保留（状態を更新しないので、明けた最初のtickで投稿される）
-  if (inQuietHours()) return { code: 200, body: { skipped: true, reason: "静音時間帯（深夜など）", slot } };
-
-  // 素材を使い切ったら先頭に戻ってループ
-  const text = THREADS_QUEUE[slot % THREADS_QUEUE.length];
+  if (posting) return { code: 200, body: { skipped: true, reason: "投稿処理中" } };
+  posting = true;
   try {
+    const recent = Array.isArray(state.recent) ? state.recent : [];
+    const idx = pickIndex(recent);
+    const text = THREADS_QUEUE[idx];
     const id = await publishThreadsPost(text);
-    postedThisProcess.add(slot);
-    writeThreadsState({ lastPostedIndex: slot, start: startMs });
-    console.log(`[threads] 投稿成功 slot=${slot} id=${id}`);
-    return { code: 200, body: { posted: true, slot, id, preview: text.slice(0, 30) } };
+    const nextAt = now + randGapMs();
+    const newRecent = [idx, ...recent].slice(0, RECENT_KEEP);
+    writeThreadsState({ ...state, nextPostAt: nextAt, recent: newRecent, lastIndex: idx, lastPostedAt: now });
+    console.log(`[threads] 投稿成功 idx=${idx} id=${id} 次回=${new Date(nextAt).toISOString()}`);
+    return { code: 200, body: { posted: true, index: idx, id, preview: text.slice(0, 30), nextPostAt: new Date(nextAt).toISOString() } };
   } catch (e) {
-    console.error("[threads] 投稿失敗 slot=" + slot, e.message);
-    return { code: 502, body: { error: e.message, slot } };
+    console.error("[threads] 投稿失敗", e.message);
+    return { code: 502, body: { error: e.message } };
+  } finally {
+    posting = false;
   }
 }
 
@@ -612,15 +632,16 @@ app.post("/api/threads/post-now", postNowHandler);
 app.get("/api/threads/status", (req, res) => {
   if (!cronAuthed(req)) return res.status(401).json({ error: "CRON_KEY が違います" });
   const state = readThreadsState();
-  const startMs = threadsStart() ?? (state.start ? Number(state.start) : null);
-  const slot = startMs != null ? currentSlotIndex(startMs) : null;
+  const next = state.nextPostAt ? Number(state.nextPostAt) : null;
   res.json({
     configured: threadsConfigured(),
     queueLength: THREADS_QUEUE.length,
-    intervalHours: THREADS_INTERVAL_HOURS,
-    start: startMs ? new Date(startMs).toISOString() : null,
-    currentSlot: slot,
-    lastPostedIndex: state.lastPostedIndex ?? -1,
+    mode: "human-like(random gap)",
+    gapHours: `${Math.min(GAP_MIN_H, GAP_MAX_H)}〜${Math.max(GAP_MIN_H, GAP_MAX_H)}`,
+    quietHoursJST: QUIET_START === QUIET_END ? "off" : `${QUIET_START}〜${QUIET_END}`,
+    nextPostAt: next ? new Date(next).toISOString() : null,
+    lastPostedAt: state.lastPostedAt ? new Date(Number(state.lastPostedAt)).toISOString() : null,
+    lastIndex: state.lastIndex ?? null,
   });
 });
 
@@ -738,6 +759,6 @@ app.listen(PORT, () => {
   console.log(`ANTHROPIC_API_KEY: ${process.env.ANTHROPIC_API_KEY ? "設定済み" : "(未設定)"}`);
   console.log(`UNLOCK_CODE: ${UNLOCK_CODE ? "設定済み" : "(未設定 — 有料機能はロックされたまま)"}`);
   console.log(
-    `Threads自動投稿: ${threadsConfigured() ? "設定済み" : "(未設定)"} / 素材${THREADS_QUEUE.length}本 / 間隔${THREADS_INTERVAL_HOURS}h`
+    `Threads自動投稿: ${threadsConfigured() ? "設定済み" : "(未設定)"} / 素材${THREADS_QUEUE.length}本 / 人間ライク間隔${GAP_MIN_H}〜${GAP_MAX_H}h・ランダム選択`
   );
 });
