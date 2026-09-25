@@ -489,8 +489,8 @@ function writeThreadsState(state) {
 
 // ===== 人間らしい投稿スケジューラ（"4時間ぴったり"の機械リズムを排除）=====
 // 固定間隔をやめ、ランダム間隔＋ランダム選択にして bot判定/反復判定を避ける。
-const GAP_MIN_H = Number(process.env.THREADS_MIN_GAP_HOURS) || 5; // 最短間隔(時間)
-const GAP_MAX_H = Number(process.env.THREADS_MAX_GAP_HOURS) || 9; // 最長間隔(時間)
+const GAP_MIN_H = Number(process.env.THREADS_MIN_GAP_HOURS) || 4; // 最短間隔(時間)
+const GAP_MAX_H = Number(process.env.THREADS_MAX_GAP_HOURS) || 7; // 最長間隔(時間) 平均~5.5h＝1日3〜4本
 const RECENT_KEEP = Math.min(8, Math.max(3, Math.floor(THREADS_QUEUE.length / 3)));
 let posting = false; // 内部tickと外部cronの競合ガード
 
