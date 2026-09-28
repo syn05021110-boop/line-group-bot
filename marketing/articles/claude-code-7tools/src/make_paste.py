@@ -14,10 +14,25 @@ def inline(t):
     t = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
     return re.sub(r"(https?://[^\s<]+)", r'<a href="\1">\1</a>', t)
 
+# 最初の "---" より前の「> 」行は、原稿のメモ（価格・事実確認など）なので貼り付け対象から外す
+if "---" in lines:
+    cut = lines.index("---")
+    lines = [l for n, l in enumerate(lines) if not (n < cut and l.startswith("> ")) and n != cut]
+
 title, segments, cur, i = "", [], [], 0
 while i < len(lines):
     l = lines[i]
-    if l.startswith("# "):
+    if l.startswith("```"):
+        code = []
+        i += 1
+        while i < len(lines) and not lines[i].startswith("```"):
+            code.append(lines[i]); i += 1
+        cur.append("<pre><code>" + html.escape("\n".join(code)) + "</code></pre>")
+    elif l.strip() == "---":
+        cur.append("<hr>")
+    elif l.startswith("### "):
+        cur.append(f"<h3>{inline(l[4:])}</h3>")
+    elif l.startswith("# "):
         title = l[2:]
     elif m := re.match(r"\[\[img:(.+?)\]\]", l):
         segments.append(("text", cur)); segments.append(("img", m.group(1))); cur = []
@@ -26,13 +41,13 @@ while i < len(lines):
     elif l.startswith("- "):
         items = []
         while i < len(lines) and lines[i].startswith("- "):
-            items.append(f"<li>{inline(lines[i][2:])}</li>"); i += 1
+            items.append(f"<li>{inline(lines[i][2:].replace('[ ] ', '☐ '))}</li>"); i += 1
         cur.append("<ul>" + "".join(items) + "</ul>"); continue
     elif l.startswith("> "):
         cur.append(f"<blockquote>{inline(l[2:])}</blockquote>")
     elif l.strip():
         para = [l]
-        while i + 1 < len(lines) and lines[i + 1].strip() and not re.match(r"(#|- |> |\[\[)", lines[i + 1]):
+        while i + 1 < len(lines) and lines[i + 1].strip() and not re.match(r"(#|- |> |\[\[|```|---)", lines[i + 1]):
             i += 1; para.append(lines[i])
         cur.append("<p>" + "<br>".join(inline(p) for p in para) + "</p>")
     i += 1
@@ -56,7 +71,7 @@ main{{max-width:760px;margin:0 auto}}
 button{{background:#222;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer}}
 button.done{{background:#2e7d32}}
 .body{{line-height:1.9;font-size:16px;margin-top:12px}}
-.body h2{{font-size:22px;margin:28px 0 8px}}
+.body h2{{font-size:22px;margin:28px 0 8px}}\n.body h3{{font-size:18px;margin:22px 0 6px}}\n.body pre{{background:#f1f1ef;border:1px solid #ddd;border-radius:8px;padding:12px;white-space:pre-wrap;font-size:14px}}
 .body blockquote{{border-left:4px solid #ccc;margin:12px 0;padding:4px 14px;color:#555}}
 .img{{margin:18px 0;text-align:center}}
 .img img{{max-width:100%;border-radius:8px;border:1px solid #ddd}}
