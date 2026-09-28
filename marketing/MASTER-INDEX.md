@@ -50,7 +50,8 @@
 - `product-lineup.md` … 商品ラインナップ
 - `profile-conversion.md` … プロフィール改修（bio/固定投稿）
 - `rebrand-ai.md` … AI活用リブランド設計
-- `line-funnel.md` … LINE動線（あいさつ＋ステップ配信文面）
+- `line-funnel.md` … LINE動線の考え方と経緯
+- `line-setup.md` … **LINE管理画面に貼る完成版**（あいさつ・特典・ステップ配信・サポート応答）
 
 **投稿素材**
 - `app/data/threads-queue.json` … 自動投稿40本（AI活用＋フォロー動機）
