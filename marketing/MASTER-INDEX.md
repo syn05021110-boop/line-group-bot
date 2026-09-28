@@ -18,7 +18,7 @@
 ## 🛍 商品ラインナップ
 | 段階 | 商品 | 価格 | 状態 |
 |------|------|------|------|
-| 無料 | AI発信スターターキット | ¥0 | ✅ 完成 |
+| 無料 | AI発信スターターキット | ¥0 | ✅ note公開 https://note.com/maiyome_fu/n/n32d17d126f9b |
 | 入口 | AI副業プロンプト大全50 | ¥980〜 | 中身完成→note化 |
 | 本命 | 副業ドラフト（アプリ） | ¥2,980/月・¥10,000買切 | 稼働中・導線改善要 |
 | 高単価 | AI副業90日伴走 | ¥49,800 | 🆕 手売りで出す |
@@ -29,6 +29,7 @@
 
 ## 🔗 公開URL（プロフィール・投稿に載せる）
 - **LINE公式（動線の入口）**：https://lin.ee/RzyA13P
+- **無料プレゼント note**（🎁リンクに使う）：https://note.com/maiyome_fu/n/n32d17d126f9b
 - アプリ（本命）：https://note-threadssf.onrender.com
 - 無料プレゼントpage：https://claude.ai/code/artifact/59609b05-c6ff-4274-bb4c-23eaccf0fde5
   ※ 公開リンクに使うには Share で共有ON、または note に転記（推奨）
@@ -70,7 +71,7 @@
 
 **画像つき完成品（Mac で作成）** → `articles/README.md`
 - `articles/claude-code-7tools/` … note「Claude Codeに入れるべき7つを全部入れたら…」（✅ 公開済み https://note.com/maiyome_fu/n/nc48c1a6ce08b ）＋ Threads 投稿文・画像6枚（未投稿）
-- `articles/ai-starter-kit/` … 無料プレゼント note 用の本文と画像8枚（公開前）
+- `articles/ai-starter-kit/` … 無料プレゼント note（✅ 公開済み https://note.com/maiyome_fu/n/n32d17d126f9b ）＋ Threads 告知文
 
 **リール（Instagram）**
 - 動画18本（チャットで配布済み）／生成器はscratchpad

@@ -5,7 +5,7 @@ Mac の Claude Code で作った、公開用の記事と投稿の完成品。1�
 | フォルダ | 中身 | 状態 |
 |---|---|---|
 | `claude-code-7tools/` | note「動画で見た『Claude Codeに入れるべき7つ』を全部入れたら…」＋ Threads 投稿文（メイン＋返信4＋単発4） | note 公開済み https://note.com/maiyome_fu/n/nc48c1a6ce08b ／ Threads 未投稿 |
-| `ai-starter-kit/` | note「『何を発信すればいいか分からない』が5分で消える｜AI×発信スターターキット」＋ 画像8枚 | note 公開前。**無料プレゼントはこの第1版を採用**（2026-09-28）。内容がほぼ同じ `../note-lead-magnet-v2.md`（ストーリー型）は同時には出さない |
+| `ai-starter-kit/` | note「『何を発信すればいいか分からない』が5分で消える｜AI×発信スターターキット」＋ 画像8枚 | note 公開済み https://note.com/maiyome_fu/n/n32d17d126f9b ／ Threads 告知は未投稿。**無料プレゼントはこの第1版を採用**（2026-09-28）。内容がほぼ同じ `../note-lead-magnet-v2.md`（ストーリー型）は同時には出さない |
 
 ## 各フォルダの構成
 - `*.md` … 本文（`[[img:ファイル名]]` は画像を入れる位置）
