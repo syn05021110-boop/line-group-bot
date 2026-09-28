@@ -46,13 +46,18 @@ app.post("/api/stripe/webhook", express.raw({ type: "*/*" }), (req, res) => stri
 
 app.use(express.json({ limit: "2mb" }));
 
+// お客さんに見せるエラー文（内部の詳細は出さない）
+const FRIENDLY_ERROR =
+  "ただいま一時的に利用できない状態です。少し時間をおいて、もう一度お試しください。続く場合は公式LINE（https://lin.ee/RzyA13P）でお知らせください。";
+
 // 共通エラーラッパ
 const wrap = (fn) => async (req, res) => {
   try {
     await fn(req, res);
   } catch (err) {
     console.error("[api error]", err.message);
-    res.status(500).json({ error: err.message || "サーバーエラー" });
+    // 内部のエラー内容（API キーの不備など）はお客さんに見せない。詳細はサーバーログだけに残す。
+    res.status(500).json({ error: FRIENDLY_ERROR });
   }
 };
 

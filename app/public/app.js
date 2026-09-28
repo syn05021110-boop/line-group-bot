@@ -39,13 +39,22 @@ const els = {
 };
 
 /* ---------- ユーティリティ ---------- */
+const NETWORK_ERROR =
+  "通信がうまくいきませんでした。電波のよい場所で、もう一度お試しください。続く場合は公式LINE（https://lin.ee/RzyA13P）でお知らせください。";
+
 async function api(path, body) {
-  const res = await fetch(path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-unlock-token": unlockToken() },
-    body: JSON.stringify(body || {}),
-  });
-  const data = await res.json();
+  let res, data;
+  try {
+    res = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-unlock-token": unlockToken() },
+      body: JSON.stringify(body || {}),
+    });
+    data = await res.json();
+  } catch (e) {
+    console.error("[api]", path, e);
+    throw new Error(NETWORK_ERROR);
+  }
   if (!res.ok) {
     const err = new Error(data.error || "エラーが発生しました");
     err.locked = res.status === 402 || data.locked;
@@ -149,6 +158,17 @@ async function copyText(text, btn) {
 }
 
 /* ---------- STEP1: ヒヤリング ---------- */
+// 何問目かと、終わるまでの目安を表示（AI が材料十分と判断した時点で終わる。目安は7〜10問）
+function updateHearingProgress(progress, done) {
+  const hint = document.getElementById("hearingHint");
+  if (!hint) return;
+  if (done) {
+    hint.textContent = "おつかれさまでした。強み棚卸しをまとめています…";
+  } else if (progress) {
+    hint.textContent = `いま ${progress} 問目です（だいたい7〜10問で、自動で「強み棚卸し」に進みます）`;
+  }
+}
+
 els.startBtn.addEventListener("click", async () => {
   els.startBtn.disabled = true;
   els.intro.classList.add("hidden");
@@ -162,7 +182,7 @@ els.startBtn.addEventListener("click", async () => {
     els.answerInput.focus();
   } catch (err) {
     typing.remove();
-    addMessage("開始に失敗しました: " + err.message, "ai");
+    addMessage(err.message, "ai");
     els.startBtn.disabled = false;
   }
 });
@@ -185,6 +205,7 @@ els.answerForm.addEventListener("submit", async (e) => {
     if (Array.isArray(data.transcript)) state.transcript = data.transcript;
     typing.remove();
     addMessage(data.reply, "ai");
+    updateHearingProgress(data.progress, data.done);
 
     if (data.done && data.profile) {
       state.profile = data.profile;
@@ -193,7 +214,7 @@ els.answerForm.addEventListener("submit", async (e) => {
     }
   } catch (err) {
     typing.remove();
-    addMessage("エラー: " + err.message, "ai");
+    addMessage(err.message, "ai");
   } finally {
     els.sendBtn.disabled = false;
     els.answerInput.focus();
@@ -278,7 +299,7 @@ els.genThreadsBtn.addEventListener("click", async () => {
     });
     renderThreads(data);
   } catch (err) {
-    els.threadsOut.innerHTML = `<p class="label">エラー: ${esc(err.message)}</p>`;
+    els.threadsOut.innerHTML = `<p class="label">${esc(err.message)}</p>`;
   } finally {
     els.genThreadsBtn.disabled = false;
   }
@@ -300,7 +321,7 @@ els.genXBtn.addEventListener("click", async () => {
     });
     renderX(data);
   } catch (err) {
-    els.xOut.innerHTML = `<p class="label">エラー: ${esc(err.message)}</p>`;
+    els.xOut.innerHTML = `<p class="label">${esc(err.message)}</p>`;
   } finally {
     els.genXBtn.disabled = false;
   }
@@ -313,7 +334,7 @@ els.genNoteBtn.addEventListener("click", async () => {
   }
   const theme = els.themeInput.value.trim();
   els.genNoteBtn.disabled = true;
-  els.noteOut.innerHTML = loading("note 下書きを生成中…（少し時間がかかります）");
+  els.noteOut.innerHTML = loading("note 下書きを生成中…");
   try {
     const data = await api("/api/generate/note", {
       profile: state.profile,
@@ -322,7 +343,7 @@ els.genNoteBtn.addEventListener("click", async () => {
     });
     renderNote(data.note);
   } catch (err) {
-    els.noteOut.innerHTML = `<p class="label">エラー: ${esc(err.message)}</p>`;
+    els.noteOut.innerHTML = `<p class="label">${esc(err.message)}</p>`;
   } finally {
     els.genNoteBtn.disabled = false;
   }
@@ -346,7 +367,7 @@ function wireGen(btn, outEl, path, label, renderFn) {
       });
       renderFn(data);
     } catch (err) {
-      outEl.innerHTML = `<p class="label">エラー: ${esc(err.message)}</p>`;
+      outEl.innerHTML = `<p class="label">${esc(err.message)}</p>`;
     } finally {
       btn.disabled = false;
     }
@@ -686,7 +707,7 @@ function buildNoteCopy(note) {
 
 /* ---------- helpers ---------- */
 function loading(msg) {
-  return `<div class="loading">${esc(msg)}</div>`;
+  return `<div class="loading">${esc(msg)}<br><small>1分ほどかかります。画面を閉じずにお待ちください。</small></div>`;
 }
 
 /* ---------- 投稿ガイド モーダル ---------- */
