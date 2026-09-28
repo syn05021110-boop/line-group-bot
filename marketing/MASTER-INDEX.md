@@ -10,6 +10,7 @@
 | Threads | @shachiku_mao | https://www.threads.com/@shachiku_mao | ✅ 稼働（自動投稿中） |
 | Instagram | @shachiku_mao（Threadsと同一） | https://www.instagram.com/shachiku_mao | リール投稿を開始 |
 | X（旧Twitter） | 未設定 | ─ | 🆕 `x-launch.md`で開設 |
+| **LINE公式** | 友だち追加 | https://lin.ee/RzyA13P | ✅ 動線の要 |
 
 ---
 
@@ -26,6 +27,7 @@
 ---
 
 ## 🔗 公開URL（プロフィール・投稿に載せる）
+- **LINE公式（動線の入口）**：https://lin.ee/RzyA13P
 - アプリ（本命）：https://note-threadssf.onrender.com
 - 無料プレゼントpage：https://claude.ai/code/artifact/59609b05-c6ff-4274-bb4c-23eaccf0fde5
   ※ 公開リンクに使うには Share で共有ON、または note に転記（推奨）
