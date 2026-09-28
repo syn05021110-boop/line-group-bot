@@ -7,6 +7,7 @@
 ## 📱 アカウント
 | SNS | ハンドル | URL | 状態 |
 |-----|---------|-----|------|
+| note | Mao \| 社畜のClaude code | https://note.com/maiyome_fu | ✅ 公開開始 |
 | Threads | @shachiku_mao | https://www.threads.com/@shachiku_mao | ✅ 稼働（自動投稿中） |
 | Instagram | @shachiku_mao（Threadsと同一） | https://www.instagram.com/shachiku_mao | リール投稿を開始 |
 | X（旧Twitter） | 未設定 | ─ | 🆕 `x-launch.md`で開設 |
@@ -37,9 +38,9 @@
 ## 🔒 管理URL（自分専用・公開しない）
 - リプ営業アシスト：https://note-threadssf.onrender.com/threads-outreach
 - 返信下書きアシスト：https://note-threadssf.onrender.com/threads-replies
-- 投稿ステータス：https://note-threadssf.onrender.com/api/threads/status?key=mao-cron-2026-z9k
+- 投稿ステータス：https://note-threadssf.onrender.com/api/threads/status?key=（CRON_KEY）
 - 成長ロードマップ（社内）：https://claude.ai/artifact/61LbEpffDFSvTrcx3Pihn2
-- CRON_KEY：`mao-cron-2026-z9k`
+- CRON_KEY：Render の環境変数を見る（**このリポジトリは公開なので、キーをここに書かない**）
 
 ---
 
@@ -66,6 +67,10 @@
 - `entry-offer-prompts.md` … 入口¥980（プロンプト大全50）
 - `notes-seo/` … SEO記事2本（AI副業始め方／強みの見つけ方）
 - `notes/` … note記事20本 ＋ `note-images/` アイキャッチ20枚
+
+**画像つき完成品（Mac で作成）** → `articles/README.md`
+- `articles/claude-code-7tools/` … note「Claude Codeに入れるべき7つを全部入れたら…」（✅ 公開済み https://note.com/maiyome_fu/n/nc48c1a6ce08b ）＋ Threads 投稿文・画像6枚（未投稿）
+- `articles/ai-starter-kit/` … 無料プレゼント note 用の本文と画像8枚（公開前）
 
 **リール（Instagram）**
 - 動画18本（チャットで配布済み）／生成器はscratchpad

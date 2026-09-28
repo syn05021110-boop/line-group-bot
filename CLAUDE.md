@@ -123,3 +123,16 @@ Bot をグループに入れた後、佐藤さんがグループでメッセー�
 | `Invalid reply token` | replyToken の期限切れ（30秒） | 処理を高速化する |
 | `SPREADSHEET_ID が未設定` | .env にスプシIDがない | .env を確認 |
 | `トークンファイルが見つかりません` | Google認証未設定 | credentials/tokens.json を確認 |
+
+---
+
+## 副業発信（marketing/）の運用 — Web版とMacで共通
+
+このブランチ（`claude/threads-note-income-app-fr3bhv`）は、Web 版 Claude Code と Mac の Claude Code（`~/line-group-bot`）の両方で触る。
+
+- **作業を始める前に `git pull`、終わったら commit して `git push`**。両方で同時に同じファイルを編集しない
+- 全体の索引は `marketing/MASTER-INDEX.md`。画像つきの完成品は `marketing/articles/`（書き方のルールもそこの README）
+- **このリポジトリは公開**。キー・パスワード・トークン・管理用 URL のキー部分は書かない（値は Render の環境変数）
+- 名義は Mao（@shachiku_mao）。本名・住んでいる地域・勤務先や業界は書かない
+- SNS・note・LINE への投稿や設定変更は、下書きまでを作り、公開はユーザー本人が行う
+- 画像づくり（ヘッドレス Chrome）、Canva、HyperFrames、Discord からの指示受けは Mac 側でだけ使える
