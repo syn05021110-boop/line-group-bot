@@ -1,0 +1,30 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>note貼り付け用</title>
+<style>
+body{font-family:"Hiragino Sans",sans-serif;background:#f4f4f2;color:#222;margin:0;padding:24px 16px 80px}
+main{max-width:760px;margin:0 auto}
+.guide{background:#fff8d6;border:1px solid #e8d77a;border-radius:10px;padding:14px 18px;line-height:1.8;font-size:15px}
+.seg,.titlebox{background:#fff;border:1px solid #ddd;border-radius:10px;padding:18px 22px;margin:18px 0}
+button{background:#222;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer}
+button.done{background:#2e7d32}
+.body{line-height:1.9;font-size:16px;margin-top:12px}
+.body h2{font-size:22px;margin:28px 0 8px}
+.body h3{font-size:18px;margin:22px 0 6px}
+.body pre{background:#f1f1ef;border:1px solid #ddd;border-radius:8px;padding:12px;white-space:pre-wrap;font-size:14px}
+.body blockquote{border-left:4px solid #ccc;margin:12px 0;padding:4px 14px;color:#555}
+.img{margin:18px 0;text-align:center}
+.img img{max-width:100%;border-radius:8px;border:1px solid #ddd}
+.badge{display:inline-block;background:#1565c0;color:#fff;border-radius:6px;padding:4px 10px;font-size:13px;margin-bottom:8px}
+</style></head><body><main>
+<div class="guide"><b>使い方</b><br>
+1. タイトルをコピーして、note のタイトル欄に貼る<br>
+2. 「本文1をコピー」から順にコピーし、note の本文に貼る<br>
+3. 青いラベルの位置に、images フォルダの同じ名前の画像を入れる（本文には貼られません）<br>
+※ 見出しが普通の文字になった場合は、その行を選んで「大見出し」を設定してください</div>
+<div class="titlebox"><button onclick='cp("t",this)'>タイトルをコピー</button><div class="body" id="t">コンテンツが尽きる人と尽きない人、ネタ源の違い</div></div>
+<div class='img'><div class='badge'>見出し画像に設定：n17_eyecatch.png</div><img src='images/n17_eyecatch.png'></div><div class='seg'><button onclick='cp("s1",this)'>本文1をコピー</button><div class='body' id='s1'><p>「発信を始めたはいいけど、すぐネタが尽きる」</p><p>発信を続けるうえで、多くの人がぶつかる壁です。でも、ネタが尽きにくい人もいます。その差は才能ではなく、<strong>ネタを探す場所</strong>にあると思います。</p><h2>ネタが尽きる人の探し方</h2><p>ネタが尽きる人は、たいてい<strong>頭の中だけで考えています</strong>。</p><p>「何か発信することないかな…」と、机の前でうんうん唸る。でも、頭の中の在庫には限りがあります。だから、数日で「もう書くことがない」となる。</p><p>井戸の水を汲み続けているようなもので、いつか枯れます。</p><h2>ネタが尽きにくい人の探し方</h2><p>一方、ネタが尽きにくい人は、<strong>外から拾っています</strong>。ネタ源は主に4つです。</p><p><strong>① 自分の経験</strong><br>過去の失敗、乗り越えたこと、日々の仕事の工夫。思っている以上に在庫があります。</p><p><strong>② 読者の質問・悩み</strong><br>コメントやDMで聞かれたこと、検索されているキーワード。「聞かれた＝知りたい人がいる」ネタです。</p><p><strong>③ 日々の気づき</strong><br>今日学んだこと、感じた違和感、ニュースへの意見。毎日何かしら起きています。</p><p><strong>④ 1テーマの切り口変え</strong><br>同じテーマでも、失敗談・手順・誤解・比較…と切り口を変えれば、何本にもなります。</p><p>この4つを回していれば、ネタは「ひねり出す」ものではなく「拾う」ものになっていきます。</p><h2>ネタ帳を持つ</h2><p>おすすめは、<strong>ネタ帳を1つ持つ</strong>こと。スマホのメモで十分です。日常で「あ、これ発信できるかも」と思った瞬間に、一言だけメモする。</p><p>投稿するときは、そのメモから選ぶだけ。ゼロから考えなくて済みます。</p><p>凝った文章にしなくても大丈夫です。私の場合、AIで整えた文章より、ボソッとつぶやいた一言のほうが反応があります。だから、メモした一言をほぼそのまま投稿にしてもいいくらいです。</p><h2>一度「棚卸し」すると、在庫が見える</h2><p>いちばん大きなネタ源は、やはり<strong>自分自身の経験</strong>です。ただ、多くの人はそれが自分では見えていません。一度しっかり棚卸しして、「自分にはこれだけ話せることがある」と書き出してみると、ネタ切れの不安はかなり小さくなります。</p><p>公式LINEでは、発信や副業に使えるプロンプトを配っています。「特典」と送ると、LINE限定のプロンプト5本が届きます。<br><a href="https://lin.ee/RzyA13P">https://lin.ee/RzyA13P</a></p><p>自分の強みを整理して、SNSの投稿の下書きまで作れるツール「副業ドラフト」も作っています。Threads の下書き3本までは無料で試せます。<br><a href="https://note-threadssf.onrender.com">https://note-threadssf.onrender.com</a></p></div></div>
+</main>
+<script>
+function cp(id,b){const r=document.createRange();r.selectNodeContents(document.getElementById(id));
+const s=getSelection();s.removeAllRanges();s.addRange(r);const ok=document.execCommand('copy');s.removeAllRanges();
+b.textContent=ok?'コピーしました':'コピーできませんでした（手動で選択してください）';b.classList.add('done');}
+</script></body></html>

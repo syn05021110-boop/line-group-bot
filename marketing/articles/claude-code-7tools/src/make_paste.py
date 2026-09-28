@@ -8,6 +8,9 @@ SRC = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(HERE, 
 ROOT = os.path.dirname(SRC)
 OUTNAME = sys.argv[2] if len(sys.argv) > 2 else "note_paste.html"
 lines = open(SRC, encoding="utf-8").read().splitlines()
+# 末尾の「## 画像メモ」は画像づくり用の指示なので、貼り付け対象から外す
+if "## 画像メモ" in lines:
+    lines = lines[:lines.index("## 画像メモ")]
 
 def inline(t):
     t = html.escape(t)

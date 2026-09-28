@@ -1,0 +1,30 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>note貼り付け用</title>
+<style>
+body{font-family:"Hiragino Sans",sans-serif;background:#f4f4f2;color:#222;margin:0;padding:24px 16px 80px}
+main{max-width:760px;margin:0 auto}
+.guide{background:#fff8d6;border:1px solid #e8d77a;border-radius:10px;padding:14px 18px;line-height:1.8;font-size:15px}
+.seg,.titlebox{background:#fff;border:1px solid #ddd;border-radius:10px;padding:18px 22px;margin:18px 0}
+button{background:#222;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer}
+button.done{background:#2e7d32}
+.body{line-height:1.9;font-size:16px;margin-top:12px}
+.body h2{font-size:22px;margin:28px 0 8px}
+.body h3{font-size:18px;margin:22px 0 6px}
+.body pre{background:#f1f1ef;border:1px solid #ddd;border-radius:8px;padding:12px;white-space:pre-wrap;font-size:14px}
+.body blockquote{border-left:4px solid #ccc;margin:12px 0;padding:4px 14px;color:#555}
+.img{margin:18px 0;text-align:center}
+.img img{max-width:100%;border-radius:8px;border:1px solid #ddd}
+.badge{display:inline-block;background:#1565c0;color:#fff;border-radius:6px;padding:4px 10px;font-size:13px;margin-bottom:8px}
+</style></head><body><main>
+<div class="guide"><b>使い方</b><br>
+1. タイトルをコピーして、note のタイトル欄に貼る<br>
+2. 「本文1をコピー」から順にコピーし、note の本文に貼る<br>
+3. 青いラベルの位置に、images フォルダの同じ名前の画像を入れる（本文には貼られません）<br>
+※ 見出しが普通の文字になった場合は、その行を選んで「大見出し」を設定してください</div>
+<div class="titlebox"><button onclick='cp("t",this)'>タイトルをコピー</button><div class="body" id="t">自分のツールを&quot;お客さん目線&quot;で触ったら、7週間止まっていた話</div></div>
+<div class='img'><div class='badge'>見出し画像に設定：f04_eyecatch.png</div><img src='images/f04_eyecatch.png'></div><div class='seg'><button onclick='cp("s1",this)'>本文1をコピー</button><div class='body' id='s1'><p>最初のボタンを押したら、エラーが出ました。</p><p>2026年9月28日のことです。私が作った「副業ドラフト」というツールを、はじめて来たお客さんのつもりで、頭から順番に触ってもらいました。触ったのは私ではなく、Claude です。「初めてこのページに来た人として、上から順に使ってみて。引っかかったところを全部教えて」と頼みました。</p><p>結果は、1つ目のボタンで止まりました。</p><p>原因を調べてもらうと、ツールの裏で使っている Anthropic の API キーに、有効期限が付いていました。期限は8月9日。つまり8月9日から9月28日まで、約7週間、このツールは最初のボタンでエラーになる状態でした。</p><p>その間に来た人がいたとしたら、全員、何もできずに帰ったことになります。</p><h2>利用者ゼロ・売上ゼロのツール</h2><p>先に正直に書いておきます。副業ドラフトは、今のところ利用者ゼロ、売上もゼロです。</p><p>AI の質問に答えるだけで、副業に使える自分の強みを棚卸しして、Threads や note の下書きを作る。そういうツールです。作ったこと自体には満足していて、そこで止まっていました。</p><p>利用者がゼロなのは、発信が足りないからだと思っていました。それも理由の1つだとは思います。ただ、少なくともこの7週間については、もっと手前の問題がありました。来てくれた人がいても、使えなかったのです。</p><p>利用者ゼロの理由が全部これだった、とは言えません。でも「売れない理由を考える前に、そもそも動いているかを確かめる」という順番を、完全に飛ばしていたのは事実です。</p><h2>なぜ7週間も気づかなかったのか</h2><p>理由は単純で、自分では触っていなかったからです。</p><p>作った本人は、ツールの中身を知っています。どこを押せば何が起きるか分かっているので、わざわざ最初から触り直すことがありません。触るとしても、直したい部分だけを開いて確認する。最初の画面から、お客さんと同じ順番で進むことはしていませんでした。</p><p>もう1つは、エラーが出ても私に知らせる仕組みがなかったことです。エラーはサーバーの記録には残っていても、それを見に行かなければ分かりません。お客さんが困っていても、こちらには何も届かない状態でした。</p><h2>直したこと</h2><p>キーを入れ替えて終わりにせず、「はじめて来た人が困るところ」をまとめて直してもらいました。</p></div></div><div class='img'><div class='badge'>ここに画像を挿入：f04_fixes.png</div><img src='images/f04_fixes.png'></div><div class='seg'><button onclick='cp("s2",this)'>本文2をコピー</button><div class='body' id='s2'><p><strong>1. 期限なしのキーに入れ替えた</strong></p><p>まず、有効期限のない API キーを新しく作って入れ替えました。これでツールは元どおり動くようになりました。</p><p>これから同じように API キーを使う人には、期限の有無だけでなく、使いすぎを防ぐ上限（利用額の上限）も確認しておくことをおすすめします。期限をなくすと、今度は「止まらない」ことが心配になるからです。</p><p><strong>2. エラーの見せ方を変えた</strong></p><p>以前は、裏側のエラー内容がそのまま画面に出ていました。お客さんから見れば、意味の分からない英語や専門用語です。</p><p>これを「ただいま一時的に利用できない状態です。少し時間をおいて、もう一度お試しください。続く場合は公式LINEでお知らせください」という案内に変えました。細かい原因はサーバーの記録にだけ残します。</p><p><strong>3. 待ち時間を表示した</strong></p><p>下書きを作るのには少し時間がかかります。何も書いていないと、固まったのか動いているのか分かりません。そこで生成中の画面に「1分ほどかかります。画面を閉じずにお待ちください」と出すようにしました。</p><p><strong>4. ヒヤリングが何問目かを表示した</strong></p><p>最初の質問パートは、終わりが見えないと不安になります。「いま◯問目です（だいたい7〜10問で、自動で次に進みます）」と表示するようにしました。</p><p><strong>5. 下書きに「言っていないこと」を足さないようにした</strong></p><p>試しに出てきた下書きを見ると、本人が話していない出来事や、まだ存在しない資料への誘導が混ざることがありました。これを禁止するルールを足しました。</p><p><strong>6. 特定商取引法の表記と、自分で解約できるページを作った</strong></p><p>有料プランがあるのに、販売者の情報や返金の考え方をまとめたページがありませんでした。特定商取引法に基づく表記のページを作り、あわせて、お客さんが自分で解約の手続きができるページへのリンクも置きました。</p><p><strong>7. 連絡先のLINEをそろえた</strong></p><p>購入まわりの「LINEで連絡」ボタンが、今の公式LINEとは別のLINEアカウントにつながっていました。今の公式LINEに統一しました。</p><p>どれも、お客さんとして一度でも最初から触っていれば、すぐ気づけたことばかりです。</p><h2>学んだのは「自分の店に、客として入る」こと</h2><p>今回のことを一言にすると、これです。</p><p>自分の商品を、定期的にお客さんとして使う。</p><p>作る側の目線だと、「ちゃんと作ったはず」が前提になります。お客さんの目線だと、「最初のボタンが押せるか」から始まります。見ている場所がまったく違います。</p><p>私がやったのは、特別なことではありません。AI に「はじめて来た人として、上から順に使ってみて」と頼んだだけです。自分でやると、どうしても知っている道を通ってしまいます。何も知らない人のつもりで触ってもらうと、自分が素通りしていた場所で、ちゃんと引っかかってくれます。</p><p>同じように何かを作って公開している人に、3つだけ書いておきます。</p><ul><li>月に1回でいいので、最初の画面から、お客さんと同じ順番で触る</li><li>外部のサービスのキーや契約に、期限がないか確認する</li><li>エラーが出たとき、お客さんに何が見えるかを確認する</li></ul><p>売れない理由を探すのは、そのあとで十分でした。</p><h2>作って満足していた人へ</h2><p>作ったものが動かなくなっていても、使う人がいなければ誰も教えてくれません。静かに止まって、静かに誰も来なくなるだけです。</p><p>利用者ゼロ・売上ゼロという数字は、今も変わっていません。ただ、少なくとも今は、来てくれた人が最初のボタンで帰ることはなくなりました。そこからやり直しです。</p><h2>最後に</h2><p>ここからは宣伝です。</p><p>公式LINEでは、「特典」と送っていただくと、LINE限定のプロンプト5本をお届けしています。<br><a href="https://lin.ee/RzyA13P">https://lin.ee/RzyA13P</a></p><p>今回直した「副業ドラフト」は、AI の質問に答えるだけで、副業に使える強みの棚卸しと、Threads の下書きを作るツールです。Threads の下書き3本までは無料で使えます。今はちゃんと動きます。もし引っかかるところがあれば、公式LINEで教えてください。<br><a href="https://note-threadssf.onrender.com">https://note-threadssf.onrender.com</a></p><p>Threads では、こうした試行錯誤を日々発信しています。<br><a href="https://www.threads.com/@shachiku_mao">https://www.threads.com/@shachiku_mao</a></p><p>最後まで読んでいただき、ありがとうございました。</p></div></div>
+</main>
+<script>
+function cp(id,b){const r=document.createRange();r.selectNodeContents(document.getElementById(id));
+const s=getSelection();s.removeAllRanges();s.addRange(r);const ok=document.execCommand('copy');s.removeAllRanges();
+b.textContent=ok?'コピーしました':'コピーできませんでした（手動で選択してください）';b.classList.add('done');}
+</script></body></html>

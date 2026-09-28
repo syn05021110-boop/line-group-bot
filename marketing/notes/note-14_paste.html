@@ -1,0 +1,30 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>note貼り付け用</title>
+<style>
+body{font-family:"Hiragino Sans",sans-serif;background:#f4f4f2;color:#222;margin:0;padding:24px 16px 80px}
+main{max-width:760px;margin:0 auto}
+.guide{background:#fff8d6;border:1px solid #e8d77a;border-radius:10px;padding:14px 18px;line-height:1.8;font-size:15px}
+.seg,.titlebox{background:#fff;border:1px solid #ddd;border-radius:10px;padding:18px 22px;margin:18px 0}
+button{background:#222;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer}
+button.done{background:#2e7d32}
+.body{line-height:1.9;font-size:16px;margin-top:12px}
+.body h2{font-size:22px;margin:28px 0 8px}
+.body h3{font-size:18px;margin:22px 0 6px}
+.body pre{background:#f1f1ef;border:1px solid #ddd;border-radius:8px;padding:12px;white-space:pre-wrap;font-size:14px}
+.body blockquote{border-left:4px solid #ccc;margin:12px 0;padding:4px 14px;color:#555}
+.img{margin:18px 0;text-align:center}
+.img img{max-width:100%;border-radius:8px;border:1px solid #ddd}
+.badge{display:inline-block;background:#1565c0;color:#fff;border-radius:6px;padding:4px 10px;font-size:13px;margin-bottom:8px}
+</style></head><body><main>
+<div class="guide"><b>使い方</b><br>
+1. タイトルをコピーして、note のタイトル欄に貼る<br>
+2. 「本文1をコピー」から順にコピーし、note の本文に貼る<br>
+3. 青いラベルの位置に、images フォルダの同じ名前の画像を入れる（本文には貼られません）<br>
+※ 見出しが普通の文字になった場合は、その行を選んで「大見出し」を設定してください</div>
+<div class="titlebox"><button onclick='cp("t",this)'>タイトルをコピー</button><div class="body" id="t">「何者でもない自分」がSNSで信頼される最短ルート</div></div>
+<div class='img'><div class='badge'>見出し画像に設定：n14_eyecatch.png</div><img src='images/n14_eyecatch.png'></div><div class='seg'><button onclick='cp("s1",this)'>本文1をコピー</button><div class='body' id='s1'><p>「有名でもない、実績もない自分の発信なんて、誰も信じてくれない」</p><p>そう思って、発信をためらっていませんか。</p><p>私もプロフィールに書けるのは、会社員で4児の父、PTA会長、というくらいです。副業ではアフィリエイトで少し売れたことがあるだけで、脱サラはまだ遠い。それでも発信は続けています。大事なのは、実績の大きさより<strong>順番</strong>だと思っています。</p><h2>信頼は「実績」からしか生まれない、は思い込み</h2><p>多くの人が、「信頼される＝すごい実績がある」と思い込んでいます。だから「実績ができてから発信しよう」と後回しにする。でも、これだといつまでも始まりません。</p><p>実績が大きくなくても信頼されている人は、たいてい<strong>「過程を見せる」</strong>ことをしています。</p><h2>「完成品」より「変化の過程」</h2><p>人が心を動かされるのは、完璧な成功者よりも、<strong>同じ場所からもがいて進んでいる姿</strong>です。</p><ul><li>「未経験から勉強を始めました」</li><li>「最初は失敗ばかりでした」</li><li>「3ヶ月でここまで来ました」</li></ul><p>こうした過程の発信は、同じ悩みを持つ人にとって「この人なら分かってくれる」という共感になります。共感は、実績より先に信頼に変わりやすいものです。</p><h2>信頼される順番</h2><p>信頼を作る順番は、こうです。</p><p>1. <strong>共感</strong>：同じ悩み・過去を見せて「分かる」と思ってもらう<br>2. <strong>有益</strong>：小さくても役立つ情報を渡し、「この人フォローしとこう」と思ってもらう<br>3. <strong>一貫</strong>：同じテーマで発信し続け、「詳しい人」という印象を作る<br>4. <strong>実績</strong>：発信の中で積み上がった小さな成果を見せる</p><p>実績は最後でいい。発信しながら、少しずつ積み上がっていくものです。</p><h2>「何者でもない」は、今だけ</h2><p>今「何者でもない」と感じているなら、それは<strong>発信を始める前だから</strong>かもしれません。続けるうちに、「〇〇について話している人」という印象は少しずつできていきます。肩書きは、待つものではなく、育てるものです。</p><p>公式LINEでは、発信や副業に使えるプロンプトを配っています。「特典」と送ると、LINE限定のプロンプト5本が届きます。<br><a href="https://lin.ee/RzyA13P">https://lin.ee/RzyA13P</a></p><p>自分の強みを整理して、SNSの投稿の下書きまで作れるツール「副業ドラフト」も作っています。Threads の下書き3本までは無料で試せます。<br><a href="https://note-threadssf.onrender.com">https://note-threadssf.onrender.com</a></p></div></div>
+</main>
+<script>
+function cp(id,b){const r=document.createRange();r.selectNodeContents(document.getElementById(id));
+const s=getSelection();s.removeAllRanges();s.addRange(r);const ok=document.execCommand('copy');s.removeAllRanges();
+b.textContent=ok?'コピーしました':'コピーできませんでした（手動で選択してください）';b.classList.add('done');}
+</script></body></html>
