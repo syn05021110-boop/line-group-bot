@@ -24,6 +24,9 @@ Threadsは「入口」、noteは「深く理解してもらう場所」。この
 
 noteを1本書いたら、その要点をThreadsで小出しに発信し、「詳しくはnoteに」と誘導する——これで1記事が何投稿にもなります。
 
+
+![この記事のポイント](note-images-seo/body/seo-09-body.png)
+
 ## まとめ
 - 集客＝Threads、信頼＆資産＝note
 - 迷ったらThreadsから始める
