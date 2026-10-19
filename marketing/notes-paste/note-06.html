@@ -1,0 +1,36 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>note貼り付け用｜Instagramのプロフィールで9割が損してる。直すだけで変わる</title>
+<style>
+body{font-family:"Hiragino Sans",sans-serif;background:#f4f4f2;color:#222;margin:0;padding:24px 16px 80px}
+main{max-width:760px;margin:0 auto}
+.guide{background:#fff8d6;border:1px solid #e8d77a;border-radius:10px;padding:14px 18px;line-height:1.8;font-size:15px}
+.seg,.titlebox{background:#fff;border:1px solid #ddd;border-radius:10px;padding:18px 22px;margin:18px 0}
+button{background:#222;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer}
+button.done{background:#2e7d32}
+.body{line-height:1.9;font-size:16px;margin-top:12px}
+.body h2{font-size:22px;margin:28px 0 8px}
+.body h3{font-size:18px;margin:22px 0 6px}
+.body pre{background:#f1f1ef;border:1px solid #ddd;border-radius:8px;padding:12px;white-space:pre-wrap;font-size:14px}
+.body blockquote{border-left:4px solid #ccc;margin:12px 0;padding:4px 14px;color:#555}
+.body ul{padding-left:1.4em}
+.body hr{border:0;border-top:1px solid #ddd;margin:22px 0}
+.img{margin:18px 0;text-align:center}
+.img img{max-width:100%;border-radius:8px;border:1px solid #ddd}
+.badge{display:inline-block;background:#1565c0;color:#fff;border-radius:6px;padding:4px 10px;font-size:13px;margin-bottom:8px}
+.badge.eye{background:#b26a00}
+</style></head><body><main>
+<div class="guide"><b>使い方</b><br>
+1. 「タイトルをコピー」→ note のタイトル欄に貼る<br>
+2. オレンジのラベルの画像（見出し画像）を note の見出し画像に設定<br>
+3. 「本文1をコピー」→ note本文に貼る<br>
+4. 青いラベルの位置（本文の途中）に、同じ名前の画像をアップして挿入<br>
+5. 「本文2をコピー」→ 続きを貼る<br>
+※ 見出しが普通の文字になったら、その行を選んで「大見出し」に設定してください</div>
+<div class="titlebox"><button onclick='cp("t",this)'>タイトルをコピー</button><div class="body" id="t">Instagramのプロフィールで9割が損してる。直すだけで変わる</div></div>
+<div class='img'><div class='badge eye'>見出し画像に設定：note-06.png</div><img src='../note-images/note-06.png'></div>
+<div class='seg'><button onclick='cp("s1",this)'>本文1をコピー</button><div class='body' id='s1'><p>投稿は頑張っているのに、なぜかフォロワーが増えない。 その原因、<strong>プロフィール文</strong>にあるかもしれません。</p><p>Instagramでは、投稿を見て興味を持った人が、フォローするか決める場所がプロフィール。つまり<strong>プロフィールは"最後の関門"</strong>です。ここで9割の人が、無意識に損をしています。</p><h2>よくある「損してる」プロフィール</h2><ul><li>「日々の暮らしを発信🌷」→ 何の人か分からない</li><li>「30代/2児の母/ゆるく発信中」→ 属性だけで、価値が伝わらない</li><li>情報を詰め込みすぎて、結局印象に残らない</li></ul><p>これらに共通するのは、<strong>「この人をフォローする理由」が書かれていない</strong>こと。プロフィールは自己紹介ではなく、"あなたをフォローすると何が得られるか"を伝える場所なのです。</p><h2>変わるプロフィールの型</h2><p>次の3要素を、この順で入れるだけで見違えます。</p><p><strong>① 何者か（肩書き）</strong> 例：元美容部員／現役の経理／2度の転職を経験</p><p><strong>② 誰の何を解決するか</strong> 例：コスメ迷子さんへ、肌質に合う選び方を発信</p><p><strong>③ フォローするメリット or 導線</strong> 例：無料の肌質診断リストはハイライトから</p><p>改行と絵文字で"見やすく"するのもポイント。スマホでパッと読めるかを意識します。</p><h2>プロフィールは「一貫性」も大事</h2><p>Threads、X、Instagram、note——媒体ごとにバラバラの肩書きだと、信頼が分散します。<strong>同じ人物像で貫く</strong>ことで、どこで出会っても「あの人だ」と覚えてもらえます。</p></div></div><div class='img'><div class='badge'>本文中に挿入：note-06-body.png（この記事のポイント）</div><img src='../note-images/body/note-06-body.png'></div><div class='seg'><button onclick='cp("s2",this)'>本文2をコピー</button><div class='body' id='s2'><hr><p>各SNSのプロフィール文を、一貫した人物像で<strong>一括生成</strong>できるのが <strong>「副業ドラフト」</strong> です。あなたの強みから、Threads/X/Instagram/note用のプロフィールを一気に作ります。無料で試せます。</p><p>👉 <a href="https://note-threadssf.onrender.com">https://note-threadssf.onrender.com</a></p><p>投稿を変える前に、まずプロフィール。伸びの土台はここです。</p></div></div>
+</main>
+<script>
+function cp(id,b){const r=document.createRange();r.selectNodeContents(document.getElementById(id));
+const s=getSelection();s.removeAllRanges();s.addRange(r);const ok=document.execCommand('copy');s.removeAllRanges();
+b.textContent=ok?'コピーしました':'コピーできませんでした（手動で選択してください）';b.classList.add('done');}
+</script></body></html>

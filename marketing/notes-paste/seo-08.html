@@ -1,0 +1,36 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>note貼り付け用｜AIで書いた文章が"薄い"と感じる原因と、濃くする3つの直し方</title>
+<style>
+body{font-family:"Hiragino Sans",sans-serif;background:#f4f4f2;color:#222;margin:0;padding:24px 16px 80px}
+main{max-width:760px;margin:0 auto}
+.guide{background:#fff8d6;border:1px solid #e8d77a;border-radius:10px;padding:14px 18px;line-height:1.8;font-size:15px}
+.seg,.titlebox{background:#fff;border:1px solid #ddd;border-radius:10px;padding:18px 22px;margin:18px 0}
+button{background:#222;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer}
+button.done{background:#2e7d32}
+.body{line-height:1.9;font-size:16px;margin-top:12px}
+.body h2{font-size:22px;margin:28px 0 8px}
+.body h3{font-size:18px;margin:22px 0 6px}
+.body pre{background:#f1f1ef;border:1px solid #ddd;border-radius:8px;padding:12px;white-space:pre-wrap;font-size:14px}
+.body blockquote{border-left:4px solid #ccc;margin:12px 0;padding:4px 14px;color:#555}
+.body ul{padding-left:1.4em}
+.body hr{border:0;border-top:1px solid #ddd;margin:22px 0}
+.img{margin:18px 0;text-align:center}
+.img img{max-width:100%;border-radius:8px;border:1px solid #ddd}
+.badge{display:inline-block;background:#1565c0;color:#fff;border-radius:6px;padding:4px 10px;font-size:13px;margin-bottom:8px}
+.badge.eye{background:#b26a00}
+</style></head><body><main>
+<div class="guide"><b>使い方</b><br>
+1. 「タイトルをコピー」→ note のタイトル欄に貼る<br>
+2. オレンジのラベルの画像（見出し画像）を note の見出し画像に設定<br>
+3. 「本文1をコピー」→ note本文に貼る<br>
+4. 青いラベルの位置（本文の途中）に、同じ名前の画像をアップして挿入<br>
+5. 「本文2をコピー」→ 続きを貼る<br>
+※ 見出しが普通の文字になったら、その行を選んで「大見出し」に設定してください</div>
+<div class="titlebox"><button onclick='cp("t",this)'>タイトルをコピー</button><div class="body" id="t">AIで書いた文章が"薄い"と感じる原因と、濃くする3つの直し方</div></div>
+<div class='img'><div class='badge eye'>見出し画像に設定：seo-08.png</div><img src='../note-images-seo/seo-08.png'></div>
+<div class='seg'><button onclick='cp("s1",this)'>本文1をコピー</button><div class='body' id='s1'><p>AIに書いてもらった文章を読んで「なんか薄いな…」と感じたことはありませんか。その原因は、AIの性能ではなく「渡している情報」にあることがほとんどです。この記事では、AI文が薄くなる理由と、濃くするための具体的な直し方を紹介します。</p><h2>原因：AIは"あなたの情報"がないと一般論しか書けない</h2><p>AIは、渡された材料の範囲でしか書けません。指示が「このテーマについて書いて」だけだと、誰にでも当てはまる一般論になります。薄いのは当然なんです。</p><h2>直し方①：自分の"具体"を素材として渡す</h2><p>一般論を避ける一番の方法は、自分の経験・数字・具体例を渡すこと。</p><ul><li>❌「副業の始め方について書いて」</li><li>⭕️「"発信を続けられず止まる人が多い"という切り口で、仕組み化の話を書いて」</li></ul><p>渡す材料が具体的なほど、文章は濃くなります。</p><h2>直し方②：読者を1人にしぼる</h2><p>「みんなに役立つ文章」は、誰にも刺さりません。「1年前の自分」など、たった1人に向けて書くと、急に体温が乗ります。AIにも「○○で悩んでいる人ひとりに向けて」と伝えましょう。</p><h2>直し方③：最後に"自分の一言"を足す</h2><p>AIが作った文の最後に、自分の意見や問いかけを1行足すだけで、オリジナリティが出ます。AIは土台づくり、仕上げは自分。この役割分担が、薄さを消すコツです。</p></div></div><div class='img'><div class='badge'>本文中に挿入：seo-08-body.png（この記事のポイント）</div><img src='../note-images-seo/body/seo-08-body.png'></div><div class='seg'><button onclick='cp("s2",this)'>本文2をコピー</button><div class='body' id='s2'><h2>まとめ</h2><ul><li>薄いのは、AIに渡す"具体"が足りないから</li><li>自分の素材を渡す／読者を1人にしぼる／最後に自分の一言</li></ul><hr><p>※ ここからは宣伝です。 「自分の具体をAIに渡して濃い文にする」流れを仕組みにした自作ツール「副業ドラフト」を用意しています。ヒヤリング・強み棚卸し・Threads3本まで無料で試せます → <a href="https://note-threadssf.onrender.com">https://note-threadssf.onrender.com</a></p><p>🎁 発信ノウハウは公式LINEで無料配布中 → <a href="https://lin.ee/RzyA13P">https://lin.ee/RzyA13P</a></p><p>役に立ったら、スキ＆フォローで応援してもらえると嬉しいです😊</p></div></div>
+</main>
+<script>
+function cp(id,b){const r=document.createRange();r.selectNodeContents(document.getElementById(id));
+const s=getSelection();s.removeAllRanges();s.addRange(r);const ok=document.execCommand('copy');s.removeAllRanges();
+b.textContent=ok?'コピーしました':'コピーできませんでした（手動で選択してください）';b.classList.add('done');}
+</script></body></html>

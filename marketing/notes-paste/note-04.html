@@ -1,0 +1,36 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>note貼り付け用｜Threadsで0→1000フォロワー、最初にやるべき3つのこと</title>
+<style>
+body{font-family:"Hiragino Sans",sans-serif;background:#f4f4f2;color:#222;margin:0;padding:24px 16px 80px}
+main{max-width:760px;margin:0 auto}
+.guide{background:#fff8d6;border:1px solid #e8d77a;border-radius:10px;padding:14px 18px;line-height:1.8;font-size:15px}
+.seg,.titlebox{background:#fff;border:1px solid #ddd;border-radius:10px;padding:18px 22px;margin:18px 0}
+button{background:#222;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer}
+button.done{background:#2e7d32}
+.body{line-height:1.9;font-size:16px;margin-top:12px}
+.body h2{font-size:22px;margin:28px 0 8px}
+.body h3{font-size:18px;margin:22px 0 6px}
+.body pre{background:#f1f1ef;border:1px solid #ddd;border-radius:8px;padding:12px;white-space:pre-wrap;font-size:14px}
+.body blockquote{border-left:4px solid #ccc;margin:12px 0;padding:4px 14px;color:#555}
+.body ul{padding-left:1.4em}
+.body hr{border:0;border-top:1px solid #ddd;margin:22px 0}
+.img{margin:18px 0;text-align:center}
+.img img{max-width:100%;border-radius:8px;border:1px solid #ddd}
+.badge{display:inline-block;background:#1565c0;color:#fff;border-radius:6px;padding:4px 10px;font-size:13px;margin-bottom:8px}
+.badge.eye{background:#b26a00}
+</style></head><body><main>
+<div class="guide"><b>使い方</b><br>
+1. 「タイトルをコピー」→ note のタイトル欄に貼る<br>
+2. オレンジのラベルの画像（見出し画像）を note の見出し画像に設定<br>
+3. 「本文1をコピー」→ note本文に貼る<br>
+4. 青いラベルの位置（本文の途中）に、同じ名前の画像をアップして挿入<br>
+5. 「本文2をコピー」→ 続きを貼る<br>
+※ 見出しが普通の文字になったら、その行を選んで「大見出し」に設定してください</div>
+<div class="titlebox"><button onclick='cp("t",this)'>タイトルをコピー</button><div class="body" id="t">Threadsで0→1000フォロワー、最初にやるべき3つのこと</div></div>
+<div class='img'><div class='badge eye'>見出し画像に設定：note-04.png</div><img src='../note-images/note-04.png'></div>
+<div class='seg'><button onclick='cp("s1",this)'>本文1をコピー</button><div class='body' id='s1'><p>「フォロワー0からなんて、もう無理でしょ」——そう思っていませんか。</p><p>結論、<strong>最初の3手を間違えなければ、0からでも伸びます。</strong> 才能でもタイミングでもなく、順番の問題です。今日はその3手を具体的にお話しします。</p><h2>① 「誰の役に立つか」を1人に絞る</h2><p>多くの人がここで失敗します。「みんなに役立つ発信」をしようとして、結局誰にも刺さらない。</p><p>やるべきは逆で、<strong>たった1人の顔を思い浮かべる</strong>こと。「1年前の自分」でも「職場の後輩」でもいい。その人が困っていること、知りたいことに答える。狭く刺せば、同じ悩みの人が集まってきます。</p><h2>② プロフィールで「何者か」を一言で伝える</h2><p>フォローされるかどうかは、投稿を見た人がプロフィールに飛んだ<strong>その3秒</strong>で決まります。</p><ul><li>❌「日々の学びを発信中」→ 何者か分からない</li><li>⭕「元経理→数字が苦手な人にお金の管理をやさしく伝える」→ 一発で伝わる</li></ul><p>「肩書き＋誰の役に立つか」を最初に書く。これだけでフォロー率が変わります。</p><h2>③ 自分の「実体験」から書く</h2><p>一般論は、すでに他の誰かが上手に発信しています。あなたが勝てるのは<strong>あなたにしかない体験</strong>だけ。</p><p>「私も昔こうだった」「この失敗から学んだ」——固有のエピソードは、AIにも他人にもコピーできません。ここに共感と信頼が集まります。</p><h2>続けるコツは「作りだめ」</h2><p>そして最大の壁は"継続"。毎日ネタを考えていると必ず息切れします。<strong>1週間分をまとめて用意しておく</strong>だけで、投稿のハードルは劇的に下がります。</p></div></div><div class='img'><div class='badge'>本文中に挿入：note-04-body.png（この記事のポイント）</div><img src='../note-images/body/note-04-body.png'></div><div class='seg'><button onclick='cp("s2",this)'>本文2をコピー</button><div class='body' id='s2'><hr><p>「1人に絞る」「一言プロフィール」「実体験」——この3手を、AIが質問しながら一緒に組み立て、Threadsの投稿とプロフィールまで作ってくれるのが <strong>「副業ドラフト」</strong> です。無料で試せます。</p><p>👉 <a href="https://note-threadssf.onrender.com">https://note-threadssf.onrender.com</a></p><p>0からの1000は、最初の3手で決まります。</p></div></div>
+</main>
+<script>
+function cp(id,b){const r=document.createRange();r.selectNodeContents(document.getElementById(id));
+const s=getSelection();s.removeAllRanges();s.addRange(r);const ok=document.execCommand('copy');s.removeAllRanges();
+b.textContent=ok?'コピーしました':'コピーできませんでした（手動で選択してください）';b.classList.add('done');}
+</script></body></html>
