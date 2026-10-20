@@ -1,5 +1,6 @@
 // note エディタ（editor.note.com）で、note-json/*.json の原稿を下書きとして入力する。
-// 使い方（ブラウザのコンソール等）：window.__start('02-line-funnel.json','paid-notes/images') → window.__res に結果
+// 使い方（ブラウザのコンソール等）：window.__start('seo-01.json') → window.__res に結果
+// 画像フォルダは JSON内の imgDir を自動参照（省略可）。旧原稿は window.__start('02-line-funnel.json','paid-notes/images') も可
 (() => {
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const RAW = 'https://raw.githubusercontent.com/syn05021110-boop/line-group-bot/claude/threads-note-income-app-fr3bhv/marketing/';
@@ -28,11 +29,12 @@
     for (let i = 0; i < 80 && !(document.querySelector('.ProseMirror') && document.querySelector('textarea')); i++) await sleep(250);
     const log = [];
     const J = await (await fetch(RAW + 'note-json/' + jsonPath)).json();
+    imgDir = imgDir || J.imgDir || 'paid-notes/images';
     const ta = document.querySelector('textarea');
     Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(ta, J.title);
     ta.dispatchEvent(new Event('input', { bubbles: true }));
     const segs = [...J.segs]; let eye = null;
-    if (segs[0].t === 'img' && segs[0].v.includes('eyecatch')) eye = segs.shift().v;
+    if (segs[0] && segs[0].t === 'img' && (segs[0].eye || segs[0].v.includes('eyecatch'))) eye = segs.shift().v;
     const html = segs.map(s => s.t === 'html' ? s.v : `<p>@@IMG:${s.v}@@</p>`).join('');
     const el = document.querySelector('.ProseMirror'); el.focus();
     const paste = dt => el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
